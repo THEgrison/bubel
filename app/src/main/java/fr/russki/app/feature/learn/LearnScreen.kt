@@ -1,5 +1,6 @@
 package fr.russki.app.feature.learn
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,22 +28,36 @@ import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.data.content.seed.GreetingsVocabularySeed
+import fr.russki.app.data.content.seed.SeedContentPack
 import fr.russki.app.domain.model.LearningModule
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.model.ModuleKind
 
 @Composable
 fun LearnRoute(
+    onOpenAlphabet: () -> Unit,
+    onOpenGreetings: () -> Unit,
     viewModel: LearnViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LearnScreen(state = state, onRetry = viewModel::refresh)
+    LearnScreen(
+        state = state,
+        onRetry = viewModel::refresh,
+        onOpenModule = { id ->
+            when (id) {
+                SeedContentPack.ALPHABET_MODULE_ID -> onOpenAlphabet()
+                GreetingsVocabularySeed.MODULE_ID -> onOpenGreetings()
+            }
+        },
+    )
 }
 
 @Composable
 fun LearnScreen(
     state: LoadState<List<LearningModule>>,
     onRetry: () -> Unit,
+    onOpenModule: (String) -> Unit,
 ) {
     ScreenScaffold(
         title = "Apprendre",
@@ -57,17 +73,19 @@ fun LearnScreen(
                 onAction = onRetry,
             )
             is LoadState.Ready -> FadeInContent(visible = true) {
-                Column(
-                    modifier = Modifier
+                Column(Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     state.value.forEach { module ->
-                        ModuleCard(module)
+                        ModuleCard(
+                            module = module,
+                            onClick = { onOpenModule(module.id) },
+                        )
                     }
                     Text(
-                        text = "Contenu provisoire — sera remplacé par Room",
+                        text = "Contenu pédagogique v${SeedContentPack.VERSION} — embarqué hors ligne.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
@@ -79,14 +97,18 @@ fun LearnScreen(
 }
 
 @Composable
-private fun ModuleCard(module: LearningModule) {
-    SoftPanel {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
+private fun ModuleCard(
+    module: LearningModule,
+    onClick: () -> Unit,
+) {
+    SoftPanel(
+        panelModifier = Modifier.clickable(role = Role.Button, onClick = onClick),
+    ) {
+        Row(Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 Text(
                     text = kindLabel(module.kind),
                     style = MaterialTheme.typography.labelLarge,

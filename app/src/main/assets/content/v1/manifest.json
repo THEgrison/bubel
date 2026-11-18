@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "localeUi": "fr",
+  "targetLanguage": "ru",
+  "note": "Miroir déclaratif du SeedContentPack Kotlin. La source exécutée reste le seed validé ; ce manifeste documente le versionnage pour les imports futurs (Room).",
+  "modules": [
+    {
+      "id": "alphabet-ru",
+      "type": "alphabet",
+      "titleFr": "Alphabet russe",
+      "letterCount": 33
+    },
+    {
+      "id": "vocab-greetings",
+      "type": "vocabulary",
+      "titleFr": "Salutations et formules courantes",
+      "category": "salutations",
+      "level": "Beginner"
+    }
+  ],
+  "audioPolicy": "audioAssetPath is null when no native recording is bundled; UI must not invent playback."
+}

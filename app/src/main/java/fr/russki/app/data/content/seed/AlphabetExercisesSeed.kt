@@ -1,0 +1,133 @@
+package fr.russki.app.data.content.seed
+
+import fr.russki.app.domain.content.AlphabetExercise
+import fr.russki.app.domain.content.AlphabetExerciseType
+
+/**
+ * Exercices du module alphabet — données pédagogiques, hors UI.
+ */
+internal object AlphabetExercisesSeed {
+
+    val exercises: List<AlphabetExercise> = listOf(
+        AlphabetExercise(
+            id = "ex-recognize-01",
+            type = AlphabetExerciseType.RecognizeLetter,
+            promptFr = "Quelle lettre voyez-vous ?",
+            stimulus = "Ж",
+            options = listOf("Ж", "З", "Ш", "Щ"),
+            correctIndex = 0,
+            explanationFr = "Ж (жэ) est la chuintante voisée ; elle ne se confond pas avec З, Ш ou Щ.",
+            relatedLetterId = "letter-08-zh",
+        ),
+        AlphabetExercise(
+            id = "ex-recognize-02",
+            type = AlphabetExerciseType.RecognizeLetter,
+            promptFr = "Identifiez la lettre affichée.",
+            stimulus = "ы",
+            options = listOf("и", "ы", "ь", "ъ"),
+            correctIndex = 1,
+            explanationFr = "ы est une voyelle à part ; и, ь et ъ sont d'autres signes/lettres.",
+            relatedLetterId = "letter-29-y",
+        ),
+        AlphabetExercise(
+            id = "ex-name-01",
+            type = AlphabetExerciseType.MatchLetterToName,
+            promptFr = "Quel est le nom russe de cette lettre ?",
+            stimulus = "Й",
+            options = listOf("и", "и краткое", "йот", "ю"),
+            correctIndex = 1,
+            explanationFr = "Й s'appelle « и краткое » (i bref).",
+            relatedLetterId = "letter-11-j",
+        ),
+        AlphabetExercise(
+            id = "ex-name-02",
+            type = AlphabetExerciseType.MatchLetterToName,
+            promptFr = "Associez la lettre à son nom russe.",
+            stimulus = "Ъ",
+            options = listOf("мягкий знак", "твёрдый знак", "ы", "э"),
+            correctIndex = 1,
+            explanationFr = "Ъ est le signe dur : « твёрдый знак ».",
+            relatedLetterId = "letter-28-hard",
+        ),
+        AlphabetExercise(
+            id = "ex-sound-01",
+            type = AlphabetExerciseType.ChooseLetterForSound,
+            promptFr = "Quelle lettre correspond le mieux à cette description de son dans les mots ?",
+            stimulus = "Consonne chuintante sourde souvent rapprochée (en approximation) du « ch » de « chat », distincte de Щ.",
+            options = listOf("Ж", "Ш", "Ч", "Ц"),
+            correctIndex = 1,
+            explanationFr = "Il s'agit de Ш/ш. L'approximation française n'est qu'un repère d'écoute.",
+            relatedLetterId = "letter-26-sh",
+        ),
+        AlphabetExercise(
+            id = "ex-sound-02",
+            type = AlphabetExerciseType.ChooseLetterForSound,
+            promptFr = "Choisissez la lettre décrite.",
+            stimulus = "Vibrante : approximation d'un r roulé, clairement distincte du r français usuel.",
+            options = listOf("Л", "Р", "Г", "Х"),
+            correctIndex = 1,
+            explanationFr = "Р/р. Toute comparaison avec le r français reste une approximation.",
+            relatedLetterId = "letter-18-r",
+        ),
+        AlphabetExercise(
+            id = "ex-lookalike-01",
+            type = AlphabetExerciseType.DistinguishLatinLookalikes,
+            promptFr = "Cette forme cyrillique ressemble à une lettre latine, mais ce n'est pas la même. Laquelle est-ce en russe ?",
+            stimulus = "Н (ne pas lire comme le H latin)",
+            options = listOf("H latin", "Н russe (эн)", "И russe", "Й russe"),
+            correctIndex = 1,
+            explanationFr = "Н/н se nomme « эн » et note une nasale — aucun lien sonore avec H.",
+            relatedLetterId = "letter-15-n",
+        ),
+        AlphabetExercise(
+            id = "ex-lookalike-02",
+            type = AlphabetExerciseType.DistinguishLatinLookalikes,
+            promptFr = "Ne confondez pas avec le P latin. Que représente ce glyphe en russe ?",
+            stimulus = "Р",
+            options = listOf("P latin", "Р russe (эр)", "П russe", "Б russe"),
+            correctIndex = 1,
+            explanationFr = "Р/р (« эр ») est une vibrante ; le P latin et le П russe sont d'autres lettres.",
+            relatedLetterId = "letter-18-r",
+        ),
+        AlphabetExercise(
+            id = "ex-lookalike-03",
+            type = AlphabetExerciseType.DistinguishLatinLookalikes,
+            promptFr = "Forme proche d'un B latin : identifiez la lettre russe.",
+            stimulus = "В",
+            options = listOf("B latin", "В russe (вэ)", "Б russe", "Ь russe"),
+            correctIndex = 1,
+            explanationFr = "В/в (« вэ ») ; Б/б est une autre consonne, et B latin n'existe pas en cyrillique russe.",
+            relatedLetterId = "letter-03-v",
+        ),
+        AlphabetExercise(
+            id = "ex-case-01",
+            type = AlphabetExerciseType.IdentifyCase,
+            promptFr = "Cette forme est-elle une majuscule ou une minuscule ?",
+            stimulus = "д",
+            options = listOf("Majuscule", "Minuscule"),
+            correctIndex = 1,
+            explanationFr = "д est la minuscule ; la majuscule est Д.",
+            relatedLetterId = "letter-05-d",
+        ),
+        AlphabetExercise(
+            id = "ex-case-02",
+            type = AlphabetExerciseType.IdentifyCase,
+            promptFr = "Identifiez la casse de la lettre affichée.",
+            stimulus = "Я",
+            options = listOf("Majuscule", "Minuscule"),
+            correctIndex = 0,
+            explanationFr = "Я est la majuscule ; la minuscule est я.",
+            relatedLetterId = "letter-33-ya",
+        ),
+        AlphabetExercise(
+            id = "ex-case-03",
+            type = AlphabetExerciseType.IdentifyCase,
+            promptFr = "Quelle est la casse ?",
+            stimulus = "ф",
+            options = listOf("Majuscule", "Minuscule"),
+            correctIndex = 1,
+            explanationFr = "ф est minuscule ; majuscule : Ф.",
+            relatedLetterId = "letter-22-f",
+        ),
+    )
+}

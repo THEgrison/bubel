@@ -2,11 +2,13 @@
 
 Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, entièrement en français.
 
-## État actuel (phase UI)
+## État actuel
 
 - Thème Material 3 clair / sombre, accent unique
 - Navigation inférieure : Accueil, Apprendre, Réviser, Profil
-- Données **temporaires** isolées dans `data/temporary/` (à remplacer par Room / DataStore)
+- **Contenu pédagogique v1.0.0** (hors ligne) : alphabet russe (33 lettres), exercices, vocabulaire « salutations »
+- Données séparées de l'UI : `domain/content` + `data/content/seed` + manifeste `assets/content/v1/`
+- Audio : chemins `null` tant qu'aucun enregistrement natif n'est embarqué ; l'UI l'indique clairement
 
 ## Prérequis
 

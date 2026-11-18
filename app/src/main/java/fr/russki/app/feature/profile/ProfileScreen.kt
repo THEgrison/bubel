@@ -86,8 +86,7 @@ private fun ProfileContent(
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
+    Column(Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -110,8 +109,7 @@ private fun ProfileContent(
                 style = MaterialTheme.typography.titleMedium,
             )
             SpacerH(8)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            Row(Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -180,12 +178,11 @@ private fun SettingSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
+    Row(Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
             SpacerH(4)
             Text(

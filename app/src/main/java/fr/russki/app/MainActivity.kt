@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             val themePreference by TemporaryPreferencesStore.themePreference
                 .collectAsStateWithLifecycle()
             RusskiTheme(preference = themePreference) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(Modifier.fillMaxSize()) {
                     RusskiAppShell()
                 }
             }

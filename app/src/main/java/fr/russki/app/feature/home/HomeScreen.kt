@@ -100,8 +100,7 @@ private fun DashboardContent(
     onContinueLesson: () -> Unit,
     onOpenReview: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
+    Column(Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -152,12 +151,11 @@ private fun ContinueCard(
         panelModifier = Modifier.clickable(role = Role.Button, onClick = onClick),
     ) {
         SectionLabel("Continuer")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
+        Row(Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 Text(
                     text = lesson.moduleTitle,
                     style = MaterialTheme.typography.labelLarge,
