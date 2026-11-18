@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,20 +25,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.russki.app.core.ui.components.AnswerChoiceButton
+import fr.russki.app.core.ui.components.AnswerFeedbackBanner
+import fr.russki.app.core.ui.components.AnswerFeedbackState
 import fr.russki.app.core.ui.components.CyrillicSample
 import fr.russki.app.core.ui.components.EmptyState
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.core.ui.components.feedbackStateFrom
 import fr.russki.app.domain.content.AlphabetExercise
 import fr.russki.app.domain.content.AlphabetLetter
 import fr.russki.app.domain.model.LoadState
@@ -99,12 +103,11 @@ fun AlphabetOverviewScreen(
                                 MetaChip("${data.exerciseCount} exercices")
                             }
                         }
-                        Button(
+                        PrimaryButton(
+                            text = "S'exercer",
                             onClick = onOpenExercises,
                             modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("S'exercer")
-                        }
+                        )
                         SectionLabel("Lettres")
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -263,9 +266,17 @@ fun AlphabetExercisesScreen(
                                 style = MaterialTheme.typography.titleLarge,
                             )
                             SpacerH(12)
-                            Button(onClick = onRestart) { Text("Recommencer") }
+                            PrimaryButton(
+                                text = "Recommencer",
+                                onClick = onRestart,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                             SpacerH(8)
-                            OutlinedButton(onClick = onBack) { Text("Retour à l'alphabet") }
+                            SecondaryButton(
+                                text = "Retour à l'alphabet",
+                                onClick = onBack,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     } else {
                         val exercise = session.current
@@ -309,34 +320,30 @@ private fun ExerciseCard(
             SpacerH(12)
             CyrillicSample(exercise.stimulus)
         }
-        exercise.options.forEachIndexed { index, option ->
-            val selected = selectedIndex == index
-            SoftPanel(
-                panelModifier = Modifier.clickable(
+        val feedbackState = if (!answered || selectedIndex == null) {
+            AnswerFeedbackState.Idle
+        } else {
+            feedbackStateFrom(selectedIndex == exercise.correctIndex)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            exercise.options.forEachIndexed { index, option ->
+                AnswerChoiceButton(
+                    label = option,
+                    selected = selectedIndex == index,
+                    isCorrectOption = answered && index == exercise.correctIndex,
+                    feedbackState = feedbackState,
                     enabled = !answered,
-                    role = Role.Button,
                     onClick = { onSelect(index) },
-                ),
-            ) {
-                Text(
-                    text = option,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = when {
-                        !answered -> MaterialTheme.colorScheme.onSurface
-                        index == exercise.correctIndex -> MaterialTheme.colorScheme.primary
-                        selected -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
                 )
             }
         }
-        if (answered) {
-            SoftPanel {
-                Text(exercise.explanationFr, style = MaterialTheme.typography.bodyMedium)
-            }
-            Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
-                Text("Continuer")
-            }
+        if (answered && selectedIndex != null) {
+            AnswerFeedbackBanner(
+                state = feedbackState,
+                correctAnswerLabel = exercise.options.getOrNull(exercise.correctIndex),
+                explanation = exercise.explanationFr,
+                onContinue = onNext,
+            )
         }
         SpacerH(8)
     }

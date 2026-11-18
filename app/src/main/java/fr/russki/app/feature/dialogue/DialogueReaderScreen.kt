@@ -2,20 +2,15 @@ package fr.russki.app.feature.dialogue
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,17 +21,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.russki.app.core.ui.components.AnswerChoiceButton
+import fr.russki.app.core.ui.components.AnswerFeedbackBanner
+import fr.russki.app.core.ui.components.AnswerFeedbackState
 import fr.russki.app.core.ui.components.CyrillicSample
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.core.ui.components.feedbackStateFrom
 import fr.russki.app.domain.dialogue.DialogueActivityType
+import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.dialogue.DialoguePhase
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.feature.audio.LocalAudioControls
@@ -131,9 +133,11 @@ private fun IntroPhase(ui: DialogueReaderUi, onBegin: () -> Unit) {
         SpacerH(12)
         MetaChip("${ui.session.script.outline.cefrLevel.name} · ${ui.session.script.lines.size} répliques")
         SpacerH(16)
-        Button(onClick = onBegin, modifier = Modifier.fillMaxWidth()) {
-            Text("Commencer le dialogue")
-        }
+        PrimaryButton(
+            text = "Commencer le dialogue",
+            onClick = onBegin,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -162,9 +166,11 @@ private fun LinePhase(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                OutlinedButton(onClick = onReveal, modifier = Modifier.fillMaxWidth()) {
-                    Text("Afficher la traduction")
-                }
+                SecondaryButton(
+                    text = "Afficher la traduction",
+                    onClick = onReveal,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
             SpacerH(12)
             LocalAudioControls(
@@ -172,13 +178,14 @@ private fun LinePhase(
                 unavailableMessage = "Audio indisponible — aucun enregistrement natif pour cette réplique.",
             )
         }
-        Button(onClick = onAdvance, modifier = Modifier.fillMaxWidth()) {
-            Text("Continuer")
-        }
+        PrimaryButton(
+            text = "Continuer",
+            onClick = onAdvance,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActivityPhase(
     ui: DialogueReaderUi,
@@ -210,51 +217,40 @@ private fun ActivityPhase(
                 CyrillicSample(activity.stimulusRu)
             }
             SpacerH(12)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val grade = session.currentGrade
+            val feedbackState = grade?.let { feedbackStateFrom(it.isCorrect) }
+                ?: AnswerFeedbackState.Idle
+            val matcher = remember { AnswerMatcher() }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 activity.choices.forEach { choice ->
-                    FilterChip(
+                    val isCorrectOption = grade != null &&
+                        matcher.matches(choice, grade.acceptedAnswers)
+                    AnswerChoiceButton(
+                        label = choice,
                         selected = selected == choice,
-                        onClick = { if (session.currentGrade == null) selected = choice },
-                        enabled = session.currentGrade == null,
-                        label = { Text(choice) },
-                    )
-                }
-            }
-            session.currentGrade?.let { grade ->
-                SpacerH(12)
-                Text(
-                    text = if (grade.isCorrect) "Correct" else "Incorrect",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (grade.isCorrect) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                )
-                SpacerH(6)
-                Text(grade.explanationFr, style = MaterialTheme.typography.bodyMedium)
-                if (!grade.isCorrect) {
-                    SpacerH(6)
-                    Text(
-                        text = "Attendu : ${grade.acceptedAnswers.first()}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        isCorrectOption = isCorrectOption,
+                        feedbackState = feedbackState,
+                        enabled = grade == null,
+                        onClick = { selected = choice },
                     )
                 }
             }
         }
-        if (session.currentGrade == null) {
-            Button(
+        val grade = session.currentGrade
+        if (grade == null) {
+            PrimaryButton(
+                text = "Valider",
                 onClick = { selected?.let(onSubmit) },
                 enabled = selected != null,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Valider")
-            }
+            )
         } else {
-            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
-                Text("Continuer")
-            }
+            AnswerFeedbackBanner(
+                state = feedbackStateFrom(grade.isCorrect),
+                correctAnswerLabel = grade.acceptedAnswers.first(),
+                explanation = grade.explanationFr,
+                onContinue = onContinue,
+            )
         }
     }
 }
@@ -279,12 +275,16 @@ private fun SummaryPhase(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         SpacerH(16)
-        Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
-            Text("Retour au catalogue")
-        }
+        PrimaryButton(
+            text = "Retour au catalogue",
+            onClick = onFinish,
+            modifier = Modifier.fillMaxWidth(),
+        )
         SpacerH(8)
-        OutlinedButton(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
-            Text("Recommencer ce dialogue")
-        }
+        SecondaryButton(
+            text = "Recommencer ce dialogue",
+            onClick = onRestart,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

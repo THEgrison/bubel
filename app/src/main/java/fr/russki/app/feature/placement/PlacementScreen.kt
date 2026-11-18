@@ -8,12 +8,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,16 +22,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.russki.app.core.ui.components.AnswerChoiceButton
+import fr.russki.app.core.ui.components.AnswerFeedbackBanner
+import fr.russki.app.core.ui.components.AnswerFeedbackState
 import fr.russki.app.core.ui.components.CyrillicSample
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.exercise.InteractiveExerciseType
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.placement.PlacementPhase
@@ -171,13 +175,12 @@ private fun HubPhase(
                 }
             }
         }
-        Button(
+        PrimaryButton(
+            text = if (stored.latest == null) "Commencer le test" else "Repasser le test",
             onClick = onStart,
             enabled = !starting,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(if (stored.latest == null) "Commencer le test" else "Repasser le test")
-        }
+        )
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text("Retour")
         }
@@ -207,12 +210,16 @@ private fun IntroPhase(
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
-        Button(onClick = onBegin, modifier = Modifier.fillMaxWidth()) {
-            Text("Démarrer les questions")
-        }
-        OutlinedButton(onClick = onQuit, modifier = Modifier.fillMaxWidth()) {
-            Text("Quitter sans enregistrer")
-        }
+        PrimaryButton(
+            text = "Démarrer les questions",
+            onClick = onBegin,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        SecondaryButton(
+            text = "Quitter sans enregistrer",
+            onClick = onQuit,
+            modifier = Modifier.fillMaxWidth(),
+        )
         SpacerH(8)
     }
 }
@@ -255,45 +262,39 @@ private fun QuestionPhase(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        val grade = session.currentGrade
+        val feedbackState = grade?.let { feedbackStateFrom(it.isCorrect) } ?: AnswerFeedbackState.Idle
+        val matcher = remember { AnswerMatcher() }
         SoftPanel {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 exercise.choices.forEach { choice ->
-                    FilterChip(
+                    val isCorrectOption = grade != null &&
+                        matcher.matches(choice, grade.acceptedAnswers)
+                    AnswerChoiceButton(
+                        label = choice,
                         selected = selected == choice,
-                        onClick = {
-                            if (session.currentGrade == null) selected = choice
-                        },
-                        label = { Text(choice) },
-                        modifier = Modifier.fillMaxWidth(),
+                        isCorrectOption = isCorrectOption,
+                        feedbackState = feedbackState,
+                        enabled = grade == null,
+                        onClick = { selected = choice },
                     )
                 }
             }
         }
-        val grade = session.currentGrade
         if (grade != null) {
-            SoftPanel {
-                SectionLabel(if (grade.isCorrect) "Correct" else "Incorrect")
-                Text(grade.explanationFr, style = MaterialTheme.typography.bodyLarge)
-                if (!grade.isCorrect) {
-                    SpacerH(8)
-                    Text(
-                        text = "Réponse acceptée : ${grade.acceptedAnswers.first()}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
-                Text("Continuer")
-            }
+            AnswerFeedbackBanner(
+                state = feedbackState,
+                correctAnswerLabel = grade.acceptedAnswers.first(),
+                explanation = grade.explanationFr,
+                onContinue = onContinue,
+            )
         } else {
-            Button(
+            PrimaryButton(
+                text = "Valider",
                 onClick = { onSubmit(selected.orEmpty()) },
                 enabled = selected != null,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Valider")
-            }
+            )
         }
         TextButton(onClick = onQuit, modifier = Modifier.fillMaxWidth()) {
             Text("Quitter (progression des leçons intacte)")
@@ -366,17 +367,18 @@ private fun ResultPhase(
                 }
             }
             if (r.recommendation.lessonId.isNotBlank()) {
-                Button(
+                PrimaryButton(
+                    text = "Ouvrir la leçon recommandée",
                     onClick = { onOpenLesson(r.recommendation.lessonId) },
                     modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Ouvrir la leçon recommandée")
-                }
+                )
             }
         }
-        OutlinedButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
-            Text("Repasser le test")
-        }
+        SecondaryButton(
+            text = "Repasser le test",
+            onClick = onRetake,
+            modifier = Modifier.fillMaxWidth(),
+        )
         TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
             Text("Terminer")
         }

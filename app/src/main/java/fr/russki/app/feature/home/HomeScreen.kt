@@ -105,13 +105,26 @@ private fun DashboardContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        ProgressCard(content.progress)
         content.continueLesson?.let { lesson ->
             ContinueCard(lesson = lesson, onClick = onContinueLesson)
+        } ?: SoftPanel {
+            SectionLabel("Prochaine étape")
+            Text(
+                text = "Commencez une leçon pour suivre votre progression.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            SpacerH(12)
+            Text(
+                text = "Ouvrir Apprendre",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(role = Role.Button, onClick = onContinueLesson),
+            )
         }
+        ProgressCard(content.progress)
         ReviewCard(summary = content.review, onClick = onOpenReview)
         Text(
-            text = "Données de démonstration — source temporaire",
+            text = "Données locales — progression et SRS sur l’appareil.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         )

@@ -57,8 +57,8 @@ fun LearnScreen(
     onOpenPlacement: () -> Unit = {},
 ) {
     ScreenScaffold(
-        title = "Apprendre",
-        subtitle = "Parcours débutant A1 (hors ligne) — couverture progressive, non certifiante.",
+        title = "Russki",
+        subtitle = "Apprendre · parcours débutant A1 hors ligne — couverture progressive, non certifiante.",
     ) {
         when (state) {
             LoadState.Loading -> LoadingState()

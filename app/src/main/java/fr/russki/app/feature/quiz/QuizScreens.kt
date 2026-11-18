@@ -1,6 +1,5 @@
 package fr.russki.app.feature.quiz
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,33 +11,38 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.russki.app.core.ui.components.AnswerChoiceButton
+import fr.russki.app.core.ui.components.AnswerFeedbackBanner
+import fr.russki.app.core.ui.components.AnswerFeedbackState
 import fr.russki.app.core.ui.components.CyrillicSample
 import fr.russki.app.core.ui.components.EmptyState
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.quiz.QuizQuestion
 import fr.russki.app.domain.quiz.QuizQuestionType
@@ -95,13 +99,17 @@ fun QuizScreen(
                                 style = MaterialTheme.typography.titleLarge,
                             )
                             SpacerH(12)
-                            Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
-                                Text("Nouvelle session")
-                            }
+                            PrimaryButton(
+                                text = "Nouvelle session",
+                                onClick = onRestart,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                             SpacerH(8)
-                            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                                Text("Retour")
-                            }
+                            SecondaryButton(
+                                text = "Retour",
+                                onClick = onBack,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 } else {
@@ -144,12 +152,15 @@ private fun QuestionPane(
     answered: Boolean,
 ) {
     var textAnswer by rememberSaveable(question.id) { mutableStateOf("") }
-    var selectedTokens by androidx.compose.runtime.remember(question.id) {
-        mutableStateOf(listOf<String>())
+    var selectedChoice by remember(question.id) { mutableStateOf<String?>(null) }
+    var selectedTokens by remember(question.id) { mutableStateOf(listOf<String>()) }
+    var remainingTokens by remember(question.id) { mutableStateOf(question.shuffledTokens) }
+    val matcher = remember { AnswerMatcher() }
+    val feedbackState = when {
+        !revealed || lastCorrect == null -> AnswerFeedbackState.Idle
+        else -> feedbackStateFrom(lastCorrect)
     }
-    var remainingTokens by androidx.compose.runtime.remember(question.id) {
-        mutableStateOf(question.shuffledTokens)
-    }
+    val accepted = listOfNotNull(expected)
 
     Column(
         Modifier
@@ -184,6 +195,11 @@ private fun QuestionPane(
                     Text(
                         selectedTokens.joinToString(" ").ifBlank { "…" },
                         style = MaterialTheme.typography.titleMedium,
+                        color = when (feedbackState) {
+                            AnswerFeedbackState.Correct -> MaterialTheme.colorScheme.primary
+                            AnswerFeedbackState.Incorrect -> MaterialTheme.colorScheme.error
+                            AnswerFeedbackState.Idle -> MaterialTheme.colorScheme.onSurface
+                        },
                     )
                     SpacerH(8)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -196,18 +212,20 @@ private fun QuestionPane(
                                         remainingTokens = remainingTokens - token
                                     }
                                 },
+                                enabled = !answered,
                                 label = { Text(token) },
                             )
                         }
                     }
                     if (!answered) {
                         SpacerH(8)
-                        OutlinedButton(
+                        SecondaryButton(
+                            text = "Réinitialiser",
                             onClick = {
                                 selectedTokens = emptyList()
                                 remainingTokens = question.shuffledTokens
                             },
-                        ) { Text("Réinitialiser") }
+                        )
                     }
                 }
             }
@@ -222,15 +240,21 @@ private fun QuestionPane(
             }
             else -> {
                 if (question.choices.isNotEmpty()) {
-                    question.choices.forEach { choice ->
-                        SoftPanel(
-                            panelModifier = Modifier.clickable(
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        question.choices.forEach { choice ->
+                            val isCorrectOption = revealed && accepted.isNotEmpty() &&
+                                matcher.matches(choice, accepted)
+                            AnswerChoiceButton(
+                                label = choice,
+                                selected = selectedChoice == choice,
+                                isCorrectOption = isCorrectOption,
+                                feedbackState = feedbackState,
                                 enabled = !answered,
-                                role = Role.Button,
-                                onClick = { onSubmit(choice) },
-                            ),
-                        ) {
-                            Text(choice, style = MaterialTheme.typography.bodyLarge)
+                                onClick = {
+                                    selectedChoice = choice
+                                    onSubmit(choice)
+                                },
+                            )
                         }
                     }
                 } else {
@@ -246,15 +270,14 @@ private fun QuestionPane(
         }
 
         if (!answered) {
-            val canSubmit = when (question.type) {
-                QuizQuestionType.WordOrder -> selectedTokens.size == question.shuffledTokens.size
-                QuizQuestionType.Cloze -> textAnswer.isNotBlank()
-                else -> question.choices.isEmpty() && textAnswer.isNotBlank()
+            val needsExplicitSubmit = when (question.type) {
+                QuizQuestionType.WordOrder -> true
+                QuizQuestionType.Cloze -> true
+                else -> question.choices.isEmpty()
             }
-            if (canSubmit || question.type == QuizQuestionType.Cloze ||
-                (question.choices.isEmpty() && question.type != QuizQuestionType.WordOrder)
-            ) {
-                Button(
+            if (needsExplicitSubmit) {
+                PrimaryButton(
+                    text = "Valider",
                     onClick = {
                         val answer = when (question.type) {
                             QuizQuestionType.WordOrder -> selectedTokens.joinToString(" ")
@@ -268,44 +291,31 @@ private fun QuestionPane(
                         else -> textAnswer.isNotBlank()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Valider") }
+                )
             }
         }
 
-        if (revealed) {
+        if (revealed && lastCorrect != null) {
             SoftPanel {
-                Text(
-                    if (lastCorrect == true) "Correct" else "Incorrect",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (lastCorrect == true) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                )
-                if (expected != null) {
-                    SpacerH(6)
-                    Text("Réponse attendue : $expected", style = MaterialTheme.typography.bodyLarge)
-                }
-                if (explanation != null) {
-                    SpacerH(8)
-                    Text(explanation, style = MaterialTheme.typography.bodyMedium)
-                }
-                SpacerH(8)
                 Icon(
                     Icons.AutoMirrored.Outlined.VolumeOff,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                SpacerH(6)
                 Text(
                     "Prononciation : disponible uniquement si un fichier audio natif est embarqué.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
-                Text("Question suivante")
-            }
+            AnswerFeedbackBanner(
+                state = feedbackState,
+                correctAnswerLabel = expected,
+                explanation = explanation,
+                continueLabel = "Question suivante",
+                onContinue = onNext,
+            )
         }
         SpacerH(12)
     }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -23,7 +22,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -149,12 +150,18 @@ private fun ProfileContent(
                 }
             }
             SpacerH(12)
-            TextButton(onClick = onOpenStats) {
-                Text("Voir les statistiques")
-            }
-            TextButton(onClick = onOpenPlacement) {
-                Text("Test de placement")
-            }
+            SpacerH(4)
+            PrimaryButton(
+                text = "Voir les statistiques",
+                onClick = onOpenStats,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            SpacerH(8)
+            SecondaryButton(
+                text = "Test de placement",
+                onClick = onOpenPlacement,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         SoftPanel {
@@ -218,12 +225,11 @@ private fun ProfileContent(
                 onCheckedChange = onSyncOptInChange,
             )
             SpacerH(8)
-            Button(
+            PrimaryButton(
+                text = "Tenter une synchronisation",
                 onClick = onSyncPush,
                 enabled = ui.syncOptIn,
-            ) {
-                Text("Tenter une synchronisation")
-            }
+            )
             ui.syncMessage?.let { msg ->
                 SpacerH(8)
                 Text(text = msg, style = MaterialTheme.typography.bodySmall)

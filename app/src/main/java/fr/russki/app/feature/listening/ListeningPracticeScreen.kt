@@ -8,8 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,16 +21,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.russki.app.core.ui.components.AnswerChoiceButton
+import fr.russki.app.core.ui.components.AnswerFeedbackBanner
+import fr.russki.app.core.ui.components.AnswerFeedbackState
 import fr.russki.app.core.ui.components.CyrillicSample
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.feature.audio.LocalAudioControls
 import fr.russki.app.feature.stats.TrackStudyTime
@@ -91,9 +95,11 @@ fun ListeningPracticeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(12)
-                        Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
-                            Text("Recommencer")
-                        }
+                        PrimaryButton(
+                            text = "Recommencer",
+                            onClick = onRestart,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 } else {
                     val item = ui.currentItem ?: return@FadeInContent
@@ -128,41 +134,40 @@ fun ListeningPracticeScreen(
                                 )
                             }
                         }
+                        val grade = ui.grade
+                        val feedbackState = grade?.let { feedbackStateFrom(it.isCorrect) }
+                            ?: AnswerFeedbackState.Idle
+                        val matcher = remember { AnswerMatcher() }
                         SoftPanel {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 item.choices.forEach { choice ->
-                                    FilterChip(
+                                    val isCorrectOption = grade != null &&
+                                        matcher.matches(choice, grade.acceptedAnswers)
+                                    AnswerChoiceButton(
+                                        label = choice,
                                         selected = selected == choice,
-                                        onClick = {
-                                            if (ui.grade == null) selected = choice
-                                        },
-                                        label = { Text(choice) },
-                                        modifier = Modifier.fillMaxWidth(),
+                                        isCorrectOption = isCorrectOption,
+                                        feedbackState = feedbackState,
+                                        enabled = grade == null,
+                                        onClick = { selected = choice },
                                     )
                                 }
                             }
                         }
-                        ui.grade?.let { grade ->
-                            SoftPanel {
-                                SectionLabel(if (grade.isCorrect) "Correct" else "Incorrect")
-                                Text(grade.explanationFr)
-                                if (!grade.isCorrect) {
-                                    SpacerH(6)
-                                    Text(
-                                        text = "Réponse acceptée : ${grade.acceptedAnswers.first()}",
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
-                                }
-                            }
-                            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
-                                Text("Continuer")
-                            }
-                        } ?: Button(
-                            onClick = { onSubmit(selected.orEmpty()) },
-                            enabled = selected != null,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("Valider")
+                        if (grade != null) {
+                            AnswerFeedbackBanner(
+                                state = feedbackState,
+                                correctAnswerLabel = grade.acceptedAnswers.first(),
+                                explanation = grade.explanationFr,
+                                onContinue = onContinue,
+                            )
+                        } else {
+                            PrimaryButton(
+                                text = "Valider",
+                                onClick = { onSubmit(selected.orEmpty()) },
+                                enabled = selected != null,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                         SpacerH(8)
                     }
