@@ -150,8 +150,15 @@ class OfflinePersistenceTest {
         assertEquals(5, session.questions.size)
         assertTrue(session.questions.all { it.promptFr.isNotBlank() })
 
+        val progress = LessonProgressRepository(db.userLessonProgressDao())
+        progress.completeLesson("a1-lesson-greetings", 3)
+        val review = fr.russki.app.data.review.ReviewRepository(
+            progressRepository = progress,
+            srsDao = db.srsCardDao(),
+            historyDao = db.flashcardHistoryDao(),
+        )
         val flash = FlashcardRepository(
-            dao = db.srsCardDao(),
+            reviewRepository = review,
             historyDao = db.flashcardHistoryDao(),
             contentRepository = content,
         )

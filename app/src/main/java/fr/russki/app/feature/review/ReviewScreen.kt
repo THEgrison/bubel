@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.model.LoadState
@@ -26,6 +28,7 @@ import fr.russki.app.domain.model.LoadState
 @Composable
 fun ReviewRoute(
     onGoLearn: () -> Unit,
+    onOpenReviewSession: () -> Unit,
     onOpenFlashcards: () -> Unit,
     onOpenQuiz: () -> Unit,
     viewModel: ReviewViewModel = viewModel(factory = ReviewViewModel.Factory()),
@@ -35,6 +38,7 @@ fun ReviewRoute(
         state = state,
         onRetry = viewModel::refresh,
         onGoLearn = onGoLearn,
+        onOpenReviewSession = onOpenReviewSession,
         onOpenFlashcards = onOpenFlashcards,
         onOpenQuiz = onOpenQuiz,
     )
@@ -45,12 +49,13 @@ fun ReviewScreen(
     state: LoadState<ReviewUiModel>,
     onRetry: () -> Unit,
     onGoLearn: () -> Unit,
+    onOpenReviewSession: () -> Unit,
     onOpenFlashcards: () -> Unit,
     onOpenQuiz: () -> Unit,
 ) {
     ScreenScaffold(
         title = "Réviser",
-        subtitle = "Quiz, flashcards et répétition espacée.",
+        subtitle = "Répétition espacée locale — uniquement les notions déjà étudiées.",
     ) {
         when (state) {
             LoadState.Loading -> LoadingState()
@@ -70,36 +75,66 @@ fun ReviewScreen(
                 }
             }
             is LoadState.Ready -> FadeInContent(visible = true) {
+                val model = state.value
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SoftPanel {
+                        SectionLabel("File du jour")
                         Text(
-                            text = "${state.value.dueCount} carte${if (state.value.dueCount > 1) "s" else ""} due${if (state.value.dueCount > 1) "s" else ""}",
+                            text = if (model.dueCount == 0) {
+                                "Aucun élément échu"
+                            } else {
+                                "${model.dueCount} élément${if (model.dueCount > 1) "s" else ""} " +
+                                    "échu${if (model.dueCount > 1) "s" else ""}"
+                            },
                             style = MaterialTheme.typography.titleLarge,
+                        )
+                        SpacerH(6)
+                        Text(
+                            text = "${model.unlockedCount} notion${if (model.unlockedCount > 1) "s" else ""} " +
+                                "débloquée${if (model.unlockedCount > 1) "s" else ""} " +
+                                "(leçons / dialogues terminés).",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(8)
                         Text(
-                            text = "Les cartes difficiles reviennent plus tôt ; une bonne réponse " +
-                                "planifie toujours une prochaine révision.",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "Erreur → révision rapprochée (~10 min). " +
+                                "Succès → intervalle croissant (jours). " +
+                                "Règles déterministes locales, pas un modèle optimal scientifique.",
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(12)
                         Button(
+                            onClick = onOpenReviewSession,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = model.dueCount > 0,
+                        ) {
+                            Text(
+                                if (model.dueCount > 0) {
+                                    "Démarrer une session courte"
+                                } else {
+                                    "Rien à réviser pour l’instant"
+                                },
+                            )
+                        }
+                        SpacerH(8)
+                        OutlinedButton(
                             onClick = onOpenFlashcards,
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = state.value.dueCount > 0,
+                            enabled = model.dueCount > 0,
                         ) {
-                            Text("Réviser les flashcards")
+                            Text("Flashcards (auto-évaluation)")
                         }
                     }
                     SoftPanel {
                         Text("Quiz", style = MaterialTheme.typography.titleMedium)
                         SpacerH(8)
                         Text(
-                            if (state.value.hasInterruptedQuiz) {
+                            if (model.hasInterruptedQuiz) {
                                 "Une session de quiz est en cours — vous pouvez la reprendre."
                             } else {
-                                "Entraînez-vous avec des questions générées depuis le contenu hors ligne."
+                                "Entraînement libre généré depuis le contenu hors ligne (hors file SRS)."
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -107,7 +142,7 @@ fun ReviewScreen(
                         SpacerH(12)
                         Button(onClick = onOpenQuiz, modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                if (state.value.hasInterruptedQuiz) {
+                                if (model.hasInterruptedQuiz) {
                                     "Reprendre le quiz"
                                 } else {
                                     "Nouveau quiz"

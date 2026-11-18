@@ -57,4 +57,25 @@ class SrsSchedulerTest {
         assertFalse(scheduler.isDue(a.copy(nextReviewEpochMs = now + 1), now))
         assertTrue(scheduler.isDue(a.copy(nextReviewEpochMs = now), now))
     }
+
+    @Test
+    fun successiveGoods_growInterval() {
+        now = 0L
+        var card = scheduler.review(scheduler.newCard("grow"), SrsRating.Good, now).updated
+        val first = card.intervalDays
+        now = card.nextReviewEpochMs
+        card = scheduler.review(card, SrsRating.Good, now).updated
+        assertTrue(card.intervalDays > first)
+        now = card.nextReviewEpochMs
+        val third = scheduler.review(card, SrsRating.Good, now).updated
+        assertTrue(third.intervalDays >= card.intervalDays)
+    }
+
+    @Test
+    fun learningAgain_comesBackInMinutesNotDays() {
+        now = 0L
+        val card = scheduler.review(scheduler.newCard("soon"), SrsRating.Again, now).updated
+        assertTrue(card.nextReviewEpochMs - now <= 15 * 60_000L)
+        assertEquals(SrsLearningState.Learning, card.learningState)
+    }
 }

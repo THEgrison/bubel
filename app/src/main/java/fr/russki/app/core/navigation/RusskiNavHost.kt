@@ -37,6 +37,7 @@ import fr.russki.app.feature.placement.PlacementRoute
 import fr.russki.app.feature.profile.ProfileRoute
 import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
+import fr.russki.app.feature.review.ReviewSessionRoute
 import fr.russki.app.feature.speak.SpeakRoute
 import fr.russki.app.feature.stats.StatsRoute
 import fr.russki.app.feature.vocabulary.GreetingsVocabularyRoute
@@ -50,6 +51,7 @@ private object LessonRoutes {
     const val Greetings = "lesson/vocabulary/greetings"
     const val Quiz = "lesson/quiz"
     const val Flashcards = "lesson/flashcards"
+    const val ReviewSession = "review/session"
     const val Packs = "profile/packs"
     const val Stats = "profile/stats"
     const val Placement = "profile/placement"
@@ -147,6 +149,7 @@ fun RusskiAppShell() {
                             restoreState = true
                         }
                     },
+                    onOpenReviewSession = { navController.navigate(LessonRoutes.ReviewSession) },
                     onOpenFlashcards = { navController.navigate(LessonRoutes.Flashcards) },
                     onOpenQuiz = { navController.navigate(LessonRoutes.Quiz) },
                 )
@@ -217,6 +220,9 @@ fun RusskiAppShell() {
             }
             composable(LessonRoutes.Flashcards) {
                 FlashcardsRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.ReviewSession) {
+                ReviewSessionRoute(onBack = { navController.popBackStack() })
             }
             composable(LessonRoutes.Packs) {
                 PacksRoute(onBack = { navController.popBackStack() })

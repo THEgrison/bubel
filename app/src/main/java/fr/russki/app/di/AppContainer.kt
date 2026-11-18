@@ -8,6 +8,7 @@ import fr.russki.app.data.curriculum.CurriculumRepository
 import fr.russki.app.data.dialogue.DialogueRepository
 import fr.russki.app.data.flashcard.FlashcardRepository
 import fr.russki.app.data.local.RusskiDatabase
+import fr.russki.app.data.review.ReviewRepository
 import fr.russki.app.data.online.OnlineConfig
 import fr.russki.app.data.online.api.DisabledOnlineApi
 import fr.russki.app.data.online.api.HttpRusskiOnlineApi
@@ -103,11 +104,18 @@ class AppContainer(
         engine = QuizEngine(),
     )
 
+    val reviewRepository: ReviewRepository =
+        ReviewRepository(
+            progressRepository = lessonProgressRepository,
+            srsDao = database.srsCardDao(),
+            historyDao = database.flashcardHistoryDao(),
+            scheduler = SrsScheduler(),
+        )
+
     val flashcardRepository: FlashcardRepository = FlashcardRepository(
-        dao = database.srsCardDao(),
+        reviewRepository = reviewRepository,
         historyDao = database.flashcardHistoryDao(),
         contentRepository = contentRepository,
-        scheduler = SrsScheduler(),
     )
 
     val onlineApi: RusskiOnlineApi = onlineApiOverride ?: if (onlineConfig.isConfigured) {

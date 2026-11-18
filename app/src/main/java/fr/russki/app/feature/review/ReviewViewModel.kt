@@ -3,8 +3,8 @@ package fr.russki.app.feature.review
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import fr.russki.app.data.flashcard.FlashcardRepository
 import fr.russki.app.data.quiz.QuizRepository
+import fr.russki.app.data.review.ReviewRepository
 import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.model.LoadState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +14,13 @@ import kotlinx.coroutines.launch
 
 data class ReviewUiModel(
     val dueCount: Int,
+    val unlockedCount: Int,
     val hasInterruptedQuiz: Boolean,
 )
 
 class ReviewViewModel(
-    private val flashcards: FlashcardRepository = ServiceLocator.require().flashcardRepository,
+    private val reviewRepository: ReviewRepository =
+        ServiceLocator.require().reviewRepository,
     private val quiz: QuizRepository = ServiceLocator.require().quizRepository,
 ) : ViewModel() {
 
@@ -33,15 +35,21 @@ class ReviewViewModel(
         viewModelScope.launch {
             _state.value = LoadState.Loading
             runCatching {
+                val unlocked = reviewRepository.syncUnlockedCards()
                 ReviewUiModel(
-                    dueCount = flashcards.dueCount(),
+                    dueCount = reviewRepository.dueCount(),
+                    unlockedCount = unlocked.size,
                     hasInterruptedQuiz = quiz.findInterruptedSession() != null,
                 )
             }.onSuccess { model ->
-                _state.value = if (model.dueCount == 0 && !model.hasInterruptedQuiz) {
+                _state.value = if (
+                    model.dueCount == 0 &&
+                    model.unlockedCount == 0 &&
+                    !model.hasInterruptedQuiz
+                ) {
                     LoadState.Empty(
-                        "Aucune carte due et aucune session de quiz en cours. " +
-                            "Apprenez du vocabulaire ou lancez un quiz pour alimenter vos révisions.",
+                        "Aucune notion débloquée pour la révision. " +
+                            "Terminez au moins une leçon ou un dialogue dans Apprendre / Parler.",
                     )
                 } else {
                     LoadState.Ready(model)
