@@ -4,12 +4,12 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 
 ## État actuel
 
-- Contenu pédagogique v1.0.0 embarqué + Room v2 (leçons, quiz, flashcards/SRS, packs)
-- Mode avion : leçons, quiz, flashcards, progression — documenté dans [docs/OFFLINE.md](docs/OFFLINE.md)
-- En ligne optionnel : catalogue distant, packs audio (checksum, reprise, WorkManager), sync progression opt-in
-- Architecture / sécurité : [docs/ONLINE_ARCHITECTURE.md](docs/ONLINE_ARCHITECTURE.md)
-- Contrats API : [docs/API_v1.md](docs/API_v1.md)
-- Déploiement : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- Navigation : **Apprendre / Réviser / Parler / Profil**
+- Parcours **A1 — Premiers pas** (3 leçons interactives + progression Room)
+- Contenu v1 + Room : alphabet, quiz, flashcards/SRS, packs
+- Plan plateforme : [docs/MIGRATION_PLAN_PLATEFORME.md](docs/MIGRATION_PLAN_PLATEFORME.md)
+- Mode avion : [docs/OFFLINE.md](docs/OFFLINE.md) · Online : [docs/ONLINE_ARCHITECTURE.md](docs/ONLINE_ARCHITECTURE.md)
+- Audit pré-v1 : [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)
 
 Sans `RUSSKI_API_BASE_URL`, le client utilise `DisabledOnlineApi` : **aucun backend fictif n’est présenté comme opérationnel**.
 

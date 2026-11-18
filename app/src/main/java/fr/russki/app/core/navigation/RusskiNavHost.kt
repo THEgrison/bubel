@@ -27,15 +27,17 @@ import fr.russki.app.feature.alphabet.AlphabetExercisesRoute
 import fr.russki.app.feature.alphabet.AlphabetRoute
 import fr.russki.app.feature.alphabet.LetterDetailRoute
 import fr.russki.app.feature.flashcards.FlashcardsRoute
-import fr.russki.app.feature.home.HomeRoute
 import fr.russki.app.feature.learn.LearnRoute
+import fr.russki.app.feature.lesson.LessonRoute
 import fr.russki.app.feature.packs.PacksRoute
 import fr.russki.app.feature.profile.ProfileRoute
 import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
+import fr.russki.app.feature.speak.SpeakRoute
 import fr.russki.app.feature.vocabulary.GreetingsVocabularyRoute
 
 private object LessonRoutes {
+    const val Interactive = "lesson/run/{lessonId}"
     const val Alphabet = "lesson/alphabet"
     const val AlphabetExercises = "lesson/alphabet/exercises"
     const val Letter = "lesson/alphabet/letter/{letterId}"
@@ -44,6 +46,7 @@ private object LessonRoutes {
     const val Flashcards = "lesson/flashcards"
     const val Packs = "profile/packs"
 
+    fun interactive(id: String) = "lesson/run/$id"
     fun letter(id: String) = "lesson/alphabet/letter/$id"
 }
 
@@ -107,39 +110,18 @@ fun RusskiAppShell() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = RusskiDestination.Home.route,
+            startDestination = RusskiDestination.Learn.route,
             modifier = Modifier.padding(innerPadding),
             enterTransition = { fadeIn(tween(220)) },
             exitTransition = { fadeOut(tween(160)) },
             popEnterTransition = { fadeIn(tween(220)) },
             popExitTransition = { fadeOut(tween(160)) },
         ) {
-            composable(RusskiDestination.Home.route) {
-                HomeRoute(
-                    onOpenLearn = {
-                        navController.navigate(RusskiDestination.Learn.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onOpenReview = {
-                        navController.navigate(RusskiDestination.Review.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
             composable(RusskiDestination.Learn.route) {
                 LearnRoute(
-                    onOpenAlphabet = { navController.navigate(LessonRoutes.Alphabet) },
-                    onOpenGreetings = { navController.navigate(LessonRoutes.Greetings) },
+                    onOpenLesson = { id ->
+                        navController.navigate(LessonRoutes.interactive(id))
+                    },
                 )
             }
             composable(RusskiDestination.Review.route) {
@@ -157,13 +139,25 @@ fun RusskiAppShell() {
                     onOpenQuiz = { navController.navigate(LessonRoutes.Quiz) },
                 )
             }
+            composable(RusskiDestination.Speak.route) {
+                SpeakRoute()
+            }
             composable(RusskiDestination.Profile.route) {
                 ProfileRoute(
                     onOpenPacks = { navController.navigate(LessonRoutes.Packs) },
                 )
             }
-            composable(LessonRoutes.Packs) {
-                PacksRoute(onBack = { navController.popBackStack() })
+            composable(
+                route = LessonRoutes.Interactive,
+                arguments = listOf(navArgument("lessonId") { type = NavType.StringType }),
+            ) { entry ->
+                val lessonId = entry.arguments?.getString("lessonId").orEmpty()
+                LessonRoute(
+                    lessonId = lessonId,
+                    onBack = { navController.popBackStack() },
+                    onOpenLegacyAlphabet = { navController.navigate(LessonRoutes.Alphabet) },
+                    onOpenLegacyGreetings = { navController.navigate(LessonRoutes.Greetings) },
+                )
             }
             composable(LessonRoutes.Alphabet) {
                 AlphabetRoute(
@@ -193,6 +187,9 @@ fun RusskiAppShell() {
             }
             composable(LessonRoutes.Flashcards) {
                 FlashcardsRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Packs) {
+                PacksRoute(onBack = { navController.popBackStack() })
             }
         }
     }

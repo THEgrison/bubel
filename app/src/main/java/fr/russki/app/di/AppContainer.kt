@@ -4,6 +4,7 @@ import android.content.Context
 import fr.russki.app.data.content.AssetAudioAvailability
 import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.OfflineContentRepository
+import fr.russki.app.data.curriculum.CurriculumRepository
 import fr.russki.app.data.flashcard.FlashcardRepository
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.online.OnlineConfig
@@ -47,6 +48,9 @@ class AppContainer(
 
     val lessonProgressRepository: LessonProgressRepository =
         LessonProgressRepository(database.userLessonProgressDao())
+
+    val curriculumRepository: CurriculumRepository =
+        CurriculumRepository(lessonProgressRepository)
 
     val quizRepository: QuizRepository = QuizRepository(
         dao = database.quizSessionDao(),

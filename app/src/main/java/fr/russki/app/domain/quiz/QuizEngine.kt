@@ -1,5 +1,6 @@
 package fr.russki.app.domain.quiz
 
+import fr.russki.app.domain.exercise.AnswerMatcher
 import java.util.UUID
 
 /**
@@ -9,6 +10,7 @@ import java.util.UUID
 class QuizEngine(
     private val clock: () -> Long = { System.currentTimeMillis() },
     private val idGenerator: () -> String = { UUID.randomUUID().toString() },
+    private val answerMatcher: AnswerMatcher = AnswerMatcher(),
 ) {
 
     fun startSession(
@@ -96,20 +98,18 @@ class QuizEngine(
     }
 
     private fun evaluateAnswer(question: QuizQuestion, userAnswer: String): Boolean {
-        val expected = normalize(question.expectedAnswer)
-        val user = normalize(userAnswer)
-        if (user == expected) return true
-        if (question.choices.any { normalize(it) == user && normalize(it) == expected }) {
-            return true
+        val accepted = buildList {
+            add(question.expectedAnswer)
+            question.choices.filter {
+                answerMatcher.normalize(it) == answerMatcher.normalize(question.expectedAnswer)
+            }.forEach { add(it) }
         }
+        if (answerMatcher.matches(userAnswer, accepted)) return true
         userAnswer.trim().toIntOrNull()?.let { index ->
             if (index in question.choices.indices) {
-                return normalize(question.choices[index]) == expected
+                return answerMatcher.matches(question.choices[index], accepted)
             }
         }
         return false
     }
-
-    private fun normalize(value: String): String =
-        value.trim().lowercase().replace(Regex("\\s+"), " ")
 }

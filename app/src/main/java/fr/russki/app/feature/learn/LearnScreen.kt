@@ -18,8 +18,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.russki.app.core.ui.components.CyrillicSample
-import fr.russki.app.core.ui.components.EmptyState
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
@@ -28,66 +26,69 @@ import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
-import fr.russki.app.data.content.seed.GreetingsVocabularySeed
-import fr.russki.app.data.content.seed.SeedContentPack
-import fr.russki.app.domain.model.LearningModule
+import fr.russki.app.data.curriculum.UnitWithProgress
+import fr.russki.app.domain.curriculum.LessonOutline
+import fr.russki.app.domain.curriculum.LessonProgressSummary
 import fr.russki.app.domain.model.LoadState
-import fr.russki.app.domain.model.ModuleKind
 
 @Composable
 fun LearnRoute(
-    onOpenAlphabet: () -> Unit,
-    onOpenGreetings: () -> Unit,
-    viewModel: LearnViewModel = viewModel(),
+    onOpenLesson: (String) -> Unit,
+    viewModel: LearnViewModel = viewModel(factory = LearnViewModel.Factory()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LearnScreen(
         state = state,
         onRetry = viewModel::refresh,
-        onOpenModule = { id ->
-            when (id) {
-                SeedContentPack.ALPHABET_MODULE_ID -> onOpenAlphabet()
-                GreetingsVocabularySeed.MODULE_ID -> onOpenGreetings()
-            }
-        },
+        onOpenLesson = onOpenLesson,
     )
 }
 
 @Composable
 fun LearnScreen(
-    state: LoadState<List<LearningModule>>,
+    state: LoadState<UnitWithProgress>,
     onRetry: () -> Unit,
-    onOpenModule: (String) -> Unit,
+    onOpenLesson: (String) -> Unit,
 ) {
     ScreenScaffold(
         title = "Apprendre",
-        subtitle = "Modules pour débutants, utilisables hors ligne.",
+        subtitle = "Parcours A1 — Premiers pas (hors ligne).",
     ) {
         when (state) {
             LoadState.Loading -> LoadingState()
             is LoadState.Error -> ErrorState(message = state.message, onRetry = onRetry)
-            is LoadState.Empty -> EmptyState(
-                title = "Modules indisponibles",
-                body = state.message,
-                actionLabel = "Actualiser",
-                onAction = onRetry,
-            )
+            is LoadState.Empty -> ErrorState(message = state.message, onRetry = onRetry)
             is LoadState.Ready -> FadeInContent(visible = true) {
-                Column(Modifier
+                val path = state.value
+                Column(
+                    Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    state.value.forEach { module ->
-                        ModuleCard(
-                            module = module,
-                            onClick = { onOpenModule(module.id) },
+                    SoftPanel {
+                        MetaChip(path.unit.cefrLevel.name)
+                        SpacerH(8)
+                        Text(path.unit.titleFr, style = MaterialTheme.typography.headlineSmall)
+                        SpacerH(6)
+                        Text(
+                            path.unit.descriptionFr,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    path.unit.lessons.forEach { lesson ->
+                        val progress = path.lessonProgress[lesson.id]
+                        LessonCard(
+                            lesson = lesson,
+                            progress = progress,
+                            onClick = { onOpenLesson(lesson.id) },
                         )
                     }
                     Text(
-                        text = "Contenu pédagogique v${SeedContentPack.VERSION} — embarqué hors ligne.",
+                        text = "Les niveaux A2–B2 seront ajoutés après le parcours A1.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                     )
                     SpacerH(8)
                 }
@@ -97,50 +98,39 @@ fun LearnScreen(
 }
 
 @Composable
-private fun ModuleCard(
-    module: LearningModule,
+private fun LessonCard(
+    lesson: LessonOutline,
+    progress: LessonProgressSummary?,
     onClick: () -> Unit,
 ) {
     SoftPanel(
         panelModifier = Modifier.clickable(role = Role.Button, onClick = onClick),
     ) {
-        Row(Modifier.fillMaxWidth(),
+        Row(
+            Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = kindLabel(module.kind),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                SpacerH(4)
-                Text(
-                    text = module.title,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                SpacerH(6)
-                Text(
-                    text = module.subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Text(
+                text = "Leçon ${lesson.sortOrder}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            when {
+                progress?.isCompleted == true -> MetaChip("Terminée")
+                (progress?.completedExerciseCount ?: 0) > 0 -> MetaChip("En cours")
+                else -> MetaChip("${lesson.exerciseCount} exercices")
             }
-            MetaChip("${module.completedLessonCount}/${module.lessonCount}")
         }
-        SpacerH(14)
-        CyrillicSample(text = module.cyrillicSample)
-        SpacerH(14)
-        ProgressLine(
-            progress = module.completedLessonCount.toFloat() /
-                module.lessonCount.coerceAtLeast(1).toFloat(),
+        SpacerH(8)
+        Text(lesson.titleFr, style = MaterialTheme.typography.titleLarge)
+        SpacerH(6)
+        Text(
+            lesson.objectiveFr,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        SpacerH(12)
+        ProgressLine(progress = progress?.fraction ?: 0f)
     }
-}
-
-private fun kindLabel(kind: ModuleKind): String = when (kind) {
-    ModuleKind.Alphabet -> "Fondations"
-    ModuleKind.Vocabulary -> "Vocabulaire"
-    ModuleKind.Phrases -> "Expression"
-    ModuleKind.Mixed -> "Parcours"
 }

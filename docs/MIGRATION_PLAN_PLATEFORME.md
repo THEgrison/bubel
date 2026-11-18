@@ -1,7 +1,7 @@
 # Plan de migration — plateforme d’apprentissage Russki
 
-**Statut :** proposition — **en attente de validation** avant toute migration structurelle.  
-**Base :** branche `cursor/russki-pre-release-audit-ad1c` / `main` GitHub `THEgrison/bubel`  
+**Statut :** jalon 1 **livré** sur `cursor/russki-a1-platform-ad1c` (`assembleDebug` + tests unitaires verts).  
+**Base :** GitHub `THEgrison/bubel`  
 **Date :** 18 novembre 2026 (Europe/Paris)
 
 ---
@@ -170,14 +170,18 @@ Application compilable avec :
 
 ---
 
-## 6. Décisions à valider avant code
+## 6. Décisions validées
 
-Merci de confirmer (oui / ajustements) :
+1. Accueil retiré de la barre → **Parler** (placeholder) — oui  
+2. Jalon 1 = Unité 1 A1 (alphabet + salutations + se présenter) — oui  
+3. Pas Media3 / DataStore / micro au jalon 1 — oui  
+4. Marque **Russki** inchangée — oui  
+5. Branche `cursor/russki-a1-platform-ad1c` → GitHub `bubel` — oui  
 
-1. **Retirer Accueil** de la barre au profit de **Parler** (placeholder) ?
-2. **Jalon 1** limité à Unité 1 A1 (alphabet + salutations + se présenter) — OK ?
-3. **Pas** d’ajout Media3 / DataStore / micro au jalon 1 (reportés) — OK ?
-4. Nom du package / marque inchangé **Russki** — OK ?
-5. Pousser le travail sur une nouvelle branche `cursor/russki-a1-platform-ad1c` puis GitHub `bubel` — OK ?
+### Livré jalon 1
 
-Dès validation, implémentation de la **tranche jalon 1** uniquement, avec compile + tests à chaque étape.
+- Nav Apprendre / Réviser / Parler / Profil (start = Apprendre)
+- `A1Unit1Seed` + `CurriculumRepository` + `LessonEngine` / `AnswerMatcher`
+- Lecteur de leçon + progression Room (`completeLesson`)
+- Tests `AnswerMatcherTest`, `LessonEngineTest`
+- Hors scope : audio, micro, DataStore, unités A1+

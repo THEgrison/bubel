@@ -41,4 +41,20 @@ class LessonProgressRepository(
             ),
         )
     }
+
+    /** Marque la leçon terminée sans sur-incrémenter le compteur. */
+    suspend fun completeLesson(lessonId: String, totalExercises: Int) {
+        val existing = dao.get(lessonId)
+        dao.upsert(
+            UserLessonProgressEntity(
+                lessonId = lessonId,
+                completedExerciseCount = maxOf(
+                    existing?.completedExerciseCount ?: 0,
+                    totalExercises,
+                ),
+                lastOpenedEpochMs = clock(),
+                completedAtEpochMs = existing?.completedAtEpochMs ?: clock(),
+            ),
+        )
+    }
 }
