@@ -8,6 +8,7 @@ import fr.russki.app.data.online.api.ProgressSyncAck
 import fr.russki.app.data.online.api.ProgressSyncSnapshot
 import fr.russki.app.data.online.api.RusskiOnlineApi
 import fr.russki.app.data.online.api.SrsCardDto
+import fr.russki.app.data.progress.ProgressContentIds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -66,13 +67,16 @@ class ProgressSyncGateway(
     }
 
     suspend fun buildSnapshot(): ProgressSyncSnapshot {
-        val lessons = db.userLessonProgressDao().getAll().map {
-            LessonProgressDto(
-                lessonId = it.lessonId,
-                completedExerciseCount = it.completedExerciseCount,
-                completedAtEpochMs = it.completedAtEpochMs,
-            )
-        }
+        // Exclut dialogue-* : ne pas les compter comme leçons ordinaires côté sync.
+        val lessons = db.userLessonProgressDao().getAll()
+            .filter { ProgressContentIds.isCurriculumLesson(it.lessonId) }
+            .map {
+                LessonProgressDto(
+                    lessonId = it.lessonId,
+                    completedExerciseCount = it.completedExerciseCount,
+                    completedAtEpochMs = it.completedAtEpochMs,
+                )
+            }
         val cards = db.srsCardDao().getAll().map {
             SrsCardDto(
                 cardId = it.cardId,

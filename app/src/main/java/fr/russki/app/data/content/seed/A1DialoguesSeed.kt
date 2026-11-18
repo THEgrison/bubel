@@ -177,10 +177,10 @@ object A1DialoguesSeed {
     private val askInfoScript = DialogueScript(
         outline = DialogueOutline(
             id = ID_ASK,
-            titleFr = "Demander un renseignement",
+            titleFr = "Demander son chemin",
             cefrLevel = CefrLevel.A1,
             situationFr = "Dans la rue, un touriste demande le chemin de la station de métro.",
-            objectiveFr = "Demander poliment un renseignement simple et remercier.",
+            objectiveFr = "Demander poliment son chemin et remercier.",
             lineCount = 6,
             activityCount = 3,
         ),

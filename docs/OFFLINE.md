@@ -10,7 +10,7 @@ Russki est **offline-first** : les fonctions essentielles ne dépendent d'aucune
 | Écouter les audios installés | Fichiers assets / `filesDir/packs/…` ; l'UI n'expose la lecture que si le fichier existe |
 | Quiz | `QuizRepository` + tables `quiz_sessions` / `quiz_answers` |
 | Flashcards + SRS | `FlashcardRepository` + `srs_cards` + `flashcard_review_history` |
-| Progression & dates de révision | `user_lesson_progress`, `nextReviewEpochMs` |
+| Progression & dates de révision | `user_lesson_progress` (leçons `a1-lesson-*` et dialogues `dialogue-*` séparés par préfixe), `nextReviewEpochMs` |
 
 Aucune de ces actions n'appelle Retrofit, WorkManager ni une API distante.
 

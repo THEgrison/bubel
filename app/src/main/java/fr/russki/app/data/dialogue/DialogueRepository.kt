@@ -3,6 +3,7 @@ package fr.russki.app.data.dialogue
 import fr.russki.app.data.content.NoOpAudioAvailability
 import fr.russki.app.data.content.seed.A1DialoguesSeed
 import fr.russki.app.data.progress.LessonProgressRepository
+import fr.russki.app.data.progress.ProgressContentIds
 import fr.russki.app.domain.content.AudioAvailability
 import fr.russki.app.domain.content.ResolvedAudio
 import fr.russki.app.domain.dialogue.DialogueOutline
@@ -33,8 +34,12 @@ class DialogueRepository(
         audioAvailability.isAvailable(assetPath)
 
     suspend fun loadCatalog(): List<DialogueCatalogItem> = withContext(Dispatchers.IO) {
-        val stored = progressRepository.getAll().associateBy { it.lessonId }
+        // Ne lit que les ids dialogue-* — ignore toute ligne leçon de la même table.
+        val stored = progressRepository.getAll()
+            .filter { ProgressContentIds.isDialogue(it.lessonId) }
+            .associateBy { it.lessonId }
         A1DialoguesSeed.outlines().map { outline ->
+            ProgressContentIds.requireDialogueId(outline.id)
             val row = stored[outline.id]
             DialogueCatalogItem(
                 outline = outline,
@@ -49,18 +54,24 @@ class DialogueRepository(
     }
 
     suspend fun markOpened(dialogueId: String) {
-        progressRepository.markOpened(dialogueId)
+        progressRepository.markOpened(ProgressContentIds.requireDialogueId(dialogueId))
     }
 
     suspend fun recordActivityCompleted(dialogueId: String, totalActivities: Int) {
-        progressRepository.recordExerciseCompleted(dialogueId, totalActivities)
+        progressRepository.recordExerciseCompleted(
+            ProgressContentIds.requireDialogueId(dialogueId),
+            totalActivities,
+        )
     }
 
     suspend fun markCompleted(dialogueId: String, totalActivities: Int) {
-        progressRepository.completeLesson(dialogueId, totalActivities)
+        progressRepository.completeLesson(
+            ProgressContentIds.requireDialogueId(dialogueId),
+            totalActivities,
+        )
     }
 
     suspend fun reset(dialogueId: String) {
-        progressRepository.resetProgress(dialogueId)
+        progressRepository.resetProgress(ProgressContentIds.requireDialogueId(dialogueId))
     }
 }

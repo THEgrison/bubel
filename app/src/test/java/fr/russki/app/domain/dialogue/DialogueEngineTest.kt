@@ -19,6 +19,10 @@ class DialogueEngineTest {
             listOf(A1DialoguesSeed.ID_MEET, A1DialoguesSeed.ID_DRINK, A1DialoguesSeed.ID_ASK),
             ids,
         )
+        assertEquals(
+            listOf("Faire connaissance", "Commander une boisson", "Demander son chemin"),
+            A1DialoguesSeed.all.map { it.outline.titleFr },
+        )
         A1DialoguesSeed.all.forEach { script ->
             assertEquals(CefrLevel.A1, script.outline.cefrLevel)
             assertEquals(script.lines.size, script.outline.lineCount)
@@ -28,6 +32,7 @@ class DialogueEngineTest {
             assertTrue(types.contains(DialogueActivityType.ChooseTranslation))
             assertTrue(types.contains(DialogueActivityType.ChooseReply))
             assertTrue(types.contains(DialogueActivityType.FillBlank))
+            assertTrue(script.outline.id.startsWith("dialogue-"))
         }
     }
 

@@ -5,6 +5,7 @@ import fr.russki.app.data.local.entity.CurriculumExerciseEntity
 import fr.russki.app.data.local.entity.CurriculumLessonEntity
 import fr.russki.app.data.local.entity.CurriculumUnitEntity
 import fr.russki.app.data.progress.LessonProgressRepository
+import fr.russki.app.data.progress.ProgressContentIds
 import fr.russki.app.domain.curriculum.CefrLevel
 import fr.russki.app.domain.curriculum.CourseUnit
 import fr.russki.app.domain.curriculum.LessonOutline
@@ -53,8 +54,12 @@ class CurriculumRepository(
         val unitEntity = units.firstOrNull()
             ?: error("Curriculum A1 absent — seed Room requis.")
         val unit = loadUnit(unitEntity)
-        val stored = progressRepository.getAll().associateBy { it.lessonId }
+        // Ignore les lignes dialogue-* : elles ne sont pas des leçons du parcours.
+        val stored = progressRepository.getAll()
+            .filter { ProgressContentIds.isCurriculumLesson(it.lessonId) }
+            .associateBy { it.lessonId }
         val progress = unit.lessons.associate { lesson ->
+            ProgressContentIds.requireCurriculumLessonId(lesson.id)
             val row = stored[lesson.id]
             lesson.id to LessonProgressSummary(
                 lessonId = lesson.id,
@@ -67,15 +72,21 @@ class CurriculumRepository(
     }
 
     suspend fun markLessonOpened(lessonId: String) {
-        progressRepository.markOpened(lessonId)
+        progressRepository.markOpened(ProgressContentIds.requireCurriculumLessonId(lessonId))
     }
 
     suspend fun recordExercise(lessonId: String, totalExercises: Int) {
-        progressRepository.recordExerciseCompleted(lessonId, totalExercises)
+        progressRepository.recordExerciseCompleted(
+            ProgressContentIds.requireCurriculumLessonId(lessonId),
+            totalExercises,
+        )
     }
 
     suspend fun markLessonCompleted(lessonId: String, totalExercises: Int) {
-        progressRepository.completeLesson(lessonId, totalExercises)
+        progressRepository.completeLesson(
+            ProgressContentIds.requireCurriculumLessonId(lessonId),
+            totalExercises,
+        )
     }
 
     private suspend fun loadUnit(entity: CurriculumUnitEntity): CourseUnit {
