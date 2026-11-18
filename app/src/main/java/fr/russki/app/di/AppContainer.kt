@@ -6,6 +6,7 @@ import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.OfflineContentRepository
 import fr.russki.app.data.curriculum.CurriculumRepository
 import fr.russki.app.data.dialogue.DialogueRepository
+import fr.russki.app.data.flashcard.FlashcardDifficultyStore
 import fr.russki.app.data.flashcard.FlashcardRepository
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.review.ReviewRepository
@@ -41,10 +42,13 @@ class AppContainer(
     onlineConfig: OnlineConfig = OnlineConfig.fromBuildConfig(),
     onlineApiOverride: RusskiOnlineApi? = null,
 ) {
-    private val appContext = context.applicationContext
+    val appContext = context.applicationContext
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val onlineConfig: OnlineConfig = onlineConfig
+
+    val flashcardDifficultyStore: FlashcardDifficultyStore =
+        FlashcardDifficultyStore(appContext)
 
     val database: RusskiDatabase = RusskiDatabase.get(appContext)
 

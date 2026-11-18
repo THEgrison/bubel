@@ -45,10 +45,13 @@ attribution + ShareAlike sur les dérivés.
 ## Références couvertes
 
 - Vocabulaire salutations : 001, 002, 003, 005, 007, 008, 009, 010, 013
+- Phase **découverte** des leçons (`LessonTeachCatalog`) : mêmes slugs pour
+  привет, здравствуйте, спасибо, до свидания, пока, пожалуйста (écoute avant exercices)
 - Dialogues (réutilisation **exacte** uniquement) :
   - `meet-l1` → `zdravstvuyte.ogg`
   - `drink-l6` → `spasibo.ogg`
 - Mode écoute / oral : disponibles si la clé catalogue pointe vers un slug présent
+- Translittération / accent : voir `docs/PRONUNCIATION.md` (pas un enregistrement)
 
 ## Références encore sans fichier
 

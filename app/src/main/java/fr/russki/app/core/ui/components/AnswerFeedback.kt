@@ -193,6 +193,17 @@ fun AnswerChoiceButton(
     }
 }
 
+/**
+ * Contenu pédagogique optionnel sous le bandeau correct/incorrect.
+ * [audioContent] : contrôles d'écoute fournis par l'écran appelant.
+ */
+data class PedagogicalFeedbackExtras(
+    val translationFr: String? = null,
+    val transliteration: String? = null,
+    val stimulusRu: String? = null,
+    val revealedNote: String? = null,
+)
+
 @Composable
 fun AnswerFeedbackBanner(
     state: AnswerFeedbackState,
@@ -202,6 +213,8 @@ fun AnswerFeedbackBanner(
     onContinue: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     customMessage: String? = null,
+    pedagogy: PedagogicalFeedbackExtras? = null,
+    audioContent: (@Composable () -> Unit)? = null,
 ) {
     val feedback = RusskiThemeExtras.feedback
     val visible = state != AnswerFeedbackState.Idle
@@ -215,7 +228,11 @@ fun AnswerFeedbackBanner(
         val container = if (isCorrect) feedback.correctContainer else feedback.incorrectContainer
         val onContainer = if (isCorrect) feedback.onCorrectContainer else feedback.onIncorrectContainer
         val icon = if (isCorrect) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel
-        val title = customMessage ?: if (isCorrect) "Correct !" else "Incorrect"
+        val title = customMessage ?: when {
+            !pedagogy?.revealedNote.isNullOrBlank() -> pedagogy!!.revealedNote!!
+            isCorrect -> "Correct !"
+            else -> "Incorrect"
+        }
         val announce = buildString {
             append(title)
             if (!isCorrect && !correctAnswerLabel.isNullOrBlank()) {
@@ -249,14 +266,40 @@ fun AnswerFeedbackBanner(
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                if (!isCorrect && !correctAnswerLabel.isNullOrBlank()) {
+                if (!correctAnswerLabel.isNullOrBlank() && (!isCorrect || pedagogy != null)) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Bonne réponse : $correctAnswerLabel",
+                        text = if (isCorrect) "Réponse : $correctAnswerLabel" else "Bonne réponse : $correctAnswerLabel",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = feedback.correct,
                     )
+                }
+                pedagogy?.stimulusRu?.takeIf { it.isNotBlank() }?.let { ru ->
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = ru,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                pedagogy?.transliteration?.takeIf { it.isNotBlank() }?.let { tr ->
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Prononciation : $tr",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                pedagogy?.translationFr?.takeIf { it.isNotBlank() }?.let { fr ->
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Traduction : $fr",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                if (audioContent != null) {
+                    Spacer(Modifier.height(8.dp))
+                    audioContent()
                 }
                 if (!explanation.isNullOrBlank()) {
                     Spacer(Modifier.height(6.dp))
