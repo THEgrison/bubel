@@ -32,6 +32,7 @@ import fr.russki.app.domain.model.ThemePreference
 
 @Composable
 fun ProfileRoute(
+    onOpenPacks: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -42,6 +43,7 @@ fun ProfileRoute(
         onSoundChange = viewModel::setSoundEnabled,
         onOfflineOnlyChange = viewModel::setOfflinePacksOnly,
         onThemeChange = viewModel::setThemePreference,
+        onOpenPacks = onOpenPacks,
     )
 }
 
@@ -53,6 +55,7 @@ fun ProfileScreen(
     onSoundChange: (Boolean) -> Unit,
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onOpenPacks: () -> Unit = {},
 ) {
     ScreenScaffold(
         title = "Profil",
@@ -72,6 +75,7 @@ fun ProfileScreen(
                     onSoundChange = onSoundChange,
                     onOfflineOnlyChange = onOfflineOnlyChange,
                     onThemeChange = onThemeChange,
+                    onOpenPacks = onOpenPacks,
                 )
             }
         }
@@ -85,6 +89,7 @@ private fun ProfileContent(
     onSoundChange: (Boolean) -> Unit,
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
+    onOpenPacks: () -> Unit,
 ) {
     Column(Modifier
             .fillMaxSize()
@@ -156,11 +161,16 @@ private fun ProfileContent(
                 checked = settings.offlinePacksOnly,
                 onCheckedChange = onOfflineOnlyChange,
             )
+            SpacerH(12)
+            TextButton(onClick = onOpenPacks) {
+                Text("Gérer les packs hors ligne")
+            }
         }
 
         Text(
-            text = "Les réglages sont gardés en mémoire pour cette session. " +
-                "DataStore les persisttera dans une phase ultérieure.",
+            text = "Le catalogue pédagogique, les quiz, flashcards et révisions " +
+                "sont stockés localement (Room). Aucune fonctionnalité essentielle " +
+                "n'attend le réseau.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
         )

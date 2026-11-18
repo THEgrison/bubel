@@ -29,6 +29,7 @@ import fr.russki.app.feature.alphabet.LetterDetailRoute
 import fr.russki.app.feature.flashcards.FlashcardsRoute
 import fr.russki.app.feature.home.HomeRoute
 import fr.russki.app.feature.learn.LearnRoute
+import fr.russki.app.feature.packs.PacksRoute
 import fr.russki.app.feature.profile.ProfileRoute
 import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
@@ -41,6 +42,7 @@ private object LessonRoutes {
     const val Greetings = "lesson/vocabulary/greetings"
     const val Quiz = "lesson/quiz"
     const val Flashcards = "lesson/flashcards"
+    const val Packs = "profile/packs"
 
     fun letter(id: String) = "lesson/alphabet/letter/$id"
 }
@@ -156,7 +158,12 @@ fun RusskiAppShell() {
                 )
             }
             composable(RusskiDestination.Profile.route) {
-                ProfileRoute()
+                ProfileRoute(
+                    onOpenPacks = { navController.navigate(LessonRoutes.Packs) },
+                )
+            }
+            composable(LessonRoutes.Packs) {
+                PacksRoute(onBack = { navController.popBackStack() })
             }
             composable(LessonRoutes.Alphabet) {
                 AlphabetRoute(

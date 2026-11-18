@@ -1,8 +1,10 @@
 package fr.russki.app.data.flashcard
 
 import fr.russki.app.data.content.OfflineContentRepository
-import fr.russki.app.data.local.SrsCardDao
-import fr.russki.app.data.local.SrsCardEntity
+import fr.russki.app.data.local.dao.FlashcardHistoryDao
+import fr.russki.app.data.local.dao.SrsCardDao
+import fr.russki.app.data.local.entity.FlashcardReviewHistoryEntity
+import fr.russki.app.data.local.entity.SrsCardEntity
 import fr.russki.app.domain.flashcard.Flashcard
 import fr.russki.app.domain.srs.SrsCardState
 import fr.russki.app.domain.srs.SrsLearningState
@@ -11,12 +13,13 @@ import fr.russki.app.domain.srs.SrsScheduler
 
 class FlashcardRepository(
     private val dao: SrsCardDao,
+    private val historyDao: FlashcardHistoryDao,
     private val contentRepository: OfflineContentRepository = OfflineContentRepository.get(),
     private val scheduler: SrsScheduler = SrsScheduler(),
     private val clock: () -> Long = { System.currentTimeMillis() },
 ) {
 
-    /** Assure que chaque entrée pédagogique a une carte SRS. */
+    /** Assure que chaque entrée pédagogique a une carte SRS (idempotent). */
     suspend fun ensureDeckSeeded() {
         val cards = buildDeckFromContent()
         cards.forEach { card ->
@@ -44,11 +47,22 @@ class FlashcardRepository(
         val current = entity.toSrs()
         val result = scheduler.review(current, rating, clock())
         dao.upsert(entity.copySrs(result.updated))
+        historyDao.insert(
+            FlashcardReviewHistoryEntity(
+                cardId = cardId,
+                rating = rating.name,
+                reviewedAtEpochMs = clock(),
+                intervalDaysAfter = result.updated.intervalDays,
+                nextReviewEpochMs = result.updated.nextReviewEpochMs,
+            ),
+        )
         return result.updated
     }
 
     suspend fun cardState(cardId: String): SrsCardState? =
         dao.get(cardId)?.toSrs()
+
+    suspend fun reviewHistoryCount(): Int = historyDao.count()
 
     private fun buildDeckFromContent(): List<Flashcard> {
         val pack = contentRepository.contentPack()

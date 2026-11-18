@@ -1,4 +1,4 @@
-package fr.russki.app.data.local
+package fr.russki.app.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -6,6 +6,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import fr.russki.app.data.local.entity.FlashcardReviewHistoryEntity
+import fr.russki.app.data.local.entity.InstalledPackEntity
+import fr.russki.app.data.local.entity.QuizAnswerEntity
+import fr.russki.app.data.local.entity.QuizSessionEntity
+import fr.russki.app.data.local.entity.SrsCardEntity
+import fr.russki.app.data.local.entity.UserLessonProgressEntity
 
 @Dao
 interface QuizSessionDao {
@@ -71,4 +77,43 @@ interface SrsCardDao {
 
     @Query("SELECT COUNT(*) FROM srs_cards WHERE nextReviewEpochMs <= :now")
     suspend fun countDue(now: Long): Int
+}
+
+@Dao
+interface FlashcardHistoryDao {
+    @Insert
+    suspend fun insert(entry: FlashcardReviewHistoryEntity): Long
+
+    @Query("SELECT * FROM flashcard_review_history WHERE cardId = :cardId ORDER BY reviewedAtEpochMs DESC")
+    suspend fun forCard(cardId: String): List<FlashcardReviewHistoryEntity>
+
+    @Query("SELECT COUNT(*) FROM flashcard_review_history")
+    suspend fun count(): Int
+}
+
+@Dao
+interface UserLessonProgressDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(progress: UserLessonProgressEntity)
+
+    @Query("SELECT * FROM user_lesson_progress WHERE lessonId = :lessonId LIMIT 1")
+    suspend fun get(lessonId: String): UserLessonProgressEntity?
+
+    @Query("SELECT * FROM user_lesson_progress")
+    suspend fun getAll(): List<UserLessonProgressEntity>
+}
+
+@Dao
+interface InstalledPackDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(pack: InstalledPackEntity)
+
+    @Query("SELECT * FROM installed_packs WHERE packId = :packId LIMIT 1")
+    suspend fun get(packId: String): InstalledPackEntity?
+
+    @Query("SELECT * FROM installed_packs")
+    suspend fun getAll(): List<InstalledPackEntity>
+
+    @Query("DELETE FROM installed_packs WHERE packId = :packId")
+    suspend fun delete(packId: String)
 }

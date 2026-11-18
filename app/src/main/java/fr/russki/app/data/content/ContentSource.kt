@@ -1,0 +1,24 @@
+package fr.russki.app.data.content
+
+/** Origine d'une entrée pédagogique — jamais confondue avec la progression. */
+object ContentSource {
+    const val BUNDLED = "bundled"
+    const val DOWNLOADED = "downloaded"
+}
+
+object ContentMetaKeys {
+    const val BUNDLED_VERSION = "bundled_content_version"
+    const val SEED_COMPLETED_AT = "seed_completed_at_epoch_ms"
+}
+
+object PackIds {
+    const val CORE_BUNDLED = "core-v1"
+    const val AUDIO_DEMO_OPTIONAL = "audio-demo-v1"
+}
+
+object InstalledPackState {
+    const val NOT_INSTALLED = "NotInstalled"
+    const val DOWNLOADING = "Downloading"
+    const val INSTALLED = "Installed"
+    const val FAILED = "Failed"
+}

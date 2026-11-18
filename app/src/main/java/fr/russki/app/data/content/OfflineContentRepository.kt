@@ -10,8 +10,8 @@ import fr.russki.app.domain.content.ResolvedAudio
 import fr.russki.app.domain.content.VocabularyModule
 
 /**
- * Contenu pédagogique embarqué, 100 % hors ligne.
- * Remplacera progressivement [fr.russki.app.data.temporary.TemporaryContentSource].
+ * Contenu pédagogique embarqué, 100 % hors ligne (aucune I/O réseau).
+ * Le miroir Room est peuplé par [ContentSeedInitializer] pour persistance / packs.
  */
 class OfflineContentRepository(
     private val audioAvailability: AudioAvailability = NoOpAudioAvailability,

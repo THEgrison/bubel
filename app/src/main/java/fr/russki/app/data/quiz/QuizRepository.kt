@@ -1,9 +1,9 @@
 package fr.russki.app.data.quiz
 
 import fr.russki.app.data.content.OfflineContentRepository
-import fr.russki.app.data.local.QuizAnswerEntity
-import fr.russki.app.data.local.QuizSessionDao
-import fr.russki.app.data.local.QuizSessionEntity
+import fr.russki.app.data.local.dao.QuizSessionDao
+import fr.russki.app.data.local.entity.QuizAnswerEntity
+import fr.russki.app.data.local.entity.QuizSessionEntity
 import fr.russki.app.domain.quiz.QuestionGenerator
 import fr.russki.app.domain.quiz.QuizAnswerRecord
 import fr.russki.app.domain.quiz.QuizEngine

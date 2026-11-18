@@ -1,4 +1,4 @@
-package fr.russki.app.data.local
+package fr.russki.app.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -14,7 +14,6 @@ data class QuizSessionEntity(
     val questionCount: Int,
     val score: Int,
     val currentIndex: Int,
-    /** JSON sérialisé minimal des questions (ids + payload). */
     val questionsJson: String,
 )
 
@@ -29,7 +28,7 @@ data class QuizSessionEntity(
             onDelete = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("sessionId")],
+    indices = [Index("sessionId"), Index("answeredAtEpochMs")],
 )
 data class QuizAnswerEntity(
     val sessionId: String,
@@ -39,7 +38,17 @@ data class QuizAnswerEntity(
     val answeredAtEpochMs: Long,
 )
 
-@Entity(tableName = "srs_cards")
+/**
+ * Progression flashcard / SRS (utilisateur).
+ * Ne doit jamais être écrasée par le seed de contenu.
+ */
+@Entity(
+    tableName = "srs_cards",
+    indices = [
+        Index("nextReviewEpochMs"),
+        Index("contentRefId"),
+    ],
+)
 data class SrsCardEntity(
     @PrimaryKey val cardId: String,
     val contentRefId: String,
@@ -57,4 +66,40 @@ data class SrsCardEntity(
     val exampleRu: String?,
     val exampleFr: String?,
     val audioAssetPath: String?,
+)
+
+@Entity(
+    tableName = "flashcard_review_history",
+    indices = [Index("cardId"), Index("reviewedAtEpochMs")],
+)
+data class FlashcardReviewHistoryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val cardId: String,
+    val rating: String,
+    val reviewedAtEpochMs: Long,
+    val intervalDaysAfter: Double,
+    val nextReviewEpochMs: Long,
+)
+
+@Entity(tableName = "user_lesson_progress")
+data class UserLessonProgressEntity(
+    @PrimaryKey val lessonId: String,
+    val completedExerciseCount: Int,
+    val lastOpenedEpochMs: Long,
+    val completedAtEpochMs: Long?,
+)
+
+/**
+ * État d'installation d'un pack (téléchargé ou embarqué).
+ * La suppression d'un pack optionnel n'affecte pas quiz/srs/progression.
+ */
+@Entity(tableName = "installed_packs")
+data class InstalledPackEntity(
+    @PrimaryKey val packId: String,
+    /** NotInstalled | Downloading | Installed | Failed */
+    val state: String,
+    val downloadedBytes: Long,
+    val installedAtEpochMs: Long?,
+    val localDir: String?,
+    val lastError: String?,
 )
