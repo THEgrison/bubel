@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -33,12 +31,15 @@ import fr.russki.app.core.ui.components.MetaChip
 import fr.russki.app.core.ui.components.ScreenScaffold
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.data.audio.AudioResolver
 import fr.russki.app.data.content.OfflineContentRepository
 import fr.russki.app.data.content.seed.GreetingsVocabularySeed
+import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.content.ResolvedAudio
 import fr.russki.app.domain.content.VocabularyEntry
 import fr.russki.app.domain.content.VocabularyModule
 import fr.russki.app.domain.model.LoadState
+import fr.russki.app.feature.audio.LocalAudioControls
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,6 +53,9 @@ data class VocabularyUi(
 class VocabularyViewModel(
     private val moduleId: String,
     private val repository: OfflineContentRepository = OfflineContentRepository.get(),
+    private val audioResolver: AudioResolver? = runCatching {
+        ServiceLocator.require().audioResolver
+    }.getOrNull(),
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoadState<VocabularyUi>>(LoadState.Loading)
@@ -69,7 +73,9 @@ class VocabularyViewModel(
                 LoadState.Empty("Module de vocabulaire introuvable.")
             } else {
                 val audios = module.entries.associate { entry ->
-                    entry.id to repository.resolveAudio(entry.audioAssetPath)
+                    val resolved = repository.resolveAudio(entry.audioAssetPath)
+                        ?: audioResolver?.resolveVocabulary(entry.id)
+                    entry.id to resolved
                 }
                 LoadState.Ready(VocabularyUi(module = module, audios = audios))
             }
@@ -133,11 +139,13 @@ fun VocabularyScreen(
                         ui.module.entries.forEach { entry ->
                             VocabCard(
                                 entry = entry,
-                                hasAudio = ui.audios[entry.id] != null,
+                                audio = ui.audios[entry.id],
                             )
                         }
                         Text(
-                            text = "Aucune de ces entrées n'embarque encore d'enregistrement de locuteur natif.",
+                            text = "Les boutons d'écoute n'apparaissent que si un fichier " +
+                                "licencié est présent sous assets/content/audio/ru/ " +
+                                "(voir docs/AUDIO.md).",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -150,7 +158,7 @@ fun VocabularyScreen(
 }
 
 @Composable
-private fun VocabCard(entry: VocabularyEntry, hasAudio: Boolean) {
+private fun VocabCard(entry: VocabularyEntry, audio: ResolvedAudio?) {
     SoftPanel {
         CyrillicSample(entry.textRu)
         SpacerH(6)
@@ -177,21 +185,9 @@ private fun VocabCard(entry: VocabularyEntry, hasAudio: Boolean) {
             }
         }
         SpacerH(10)
-        if (hasAudio) {
-            MetaChip("Audio natif disponible")
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.VolumeOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "  Audio non disponible",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        LocalAudioControls(
+            audio = audio,
+            unavailableMessage = "Audio non disponible",
+        )
     }
 }

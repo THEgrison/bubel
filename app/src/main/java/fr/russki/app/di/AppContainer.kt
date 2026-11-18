@@ -21,6 +21,8 @@ import fr.russki.app.data.pack.PackCoordinator
 import fr.russki.app.data.pack.PackRepository
 import fr.russki.app.data.progress.LessonProgressRepository
 import fr.russki.app.data.quiz.QuizRepository
+import fr.russki.app.data.audio.AudioResolver
+import fr.russki.app.data.audio.LocalVoiceRecorder
 import fr.russki.app.data.placement.LocalPlacementStore
 import fr.russki.app.data.placement.PlacementRepository
 import fr.russki.app.data.stats.LocalStatsStore
@@ -45,8 +47,14 @@ class AppContainer(
 
     val database: RusskiDatabase = RusskiDatabase.get(appContext)
 
+    val assetAudioAvailability: AssetAudioAvailability = AssetAudioAvailability(appContext)
+
     val contentRepository: OfflineContentRepository =
-        OfflineContentRepository(audioAvailability = AssetAudioAvailability(appContext))
+        OfflineContentRepository(audioAvailability = assetAudioAvailability)
+
+    val audioResolver: AudioResolver = AudioResolver(assetAudioAvailability)
+
+    val voiceRecorder: LocalVoiceRecorder = LocalVoiceRecorder(appContext)
 
     val seedInitializer: ContentSeedInitializer = ContentSeedInitializer(database)
 

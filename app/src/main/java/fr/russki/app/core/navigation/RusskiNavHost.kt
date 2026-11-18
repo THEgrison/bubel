@@ -30,6 +30,8 @@ import fr.russki.app.feature.dialogue.DialogueReaderRoute
 import fr.russki.app.feature.flashcards.FlashcardsRoute
 import fr.russki.app.feature.learn.LearnRoute
 import fr.russki.app.feature.lesson.LessonRoute
+import fr.russki.app.feature.listening.ListeningPracticeRoute
+import fr.russki.app.feature.oral.OralPracticeRoute
 import fr.russki.app.feature.packs.PacksRoute
 import fr.russki.app.feature.placement.PlacementRoute
 import fr.russki.app.feature.profile.ProfileRoute
@@ -51,6 +53,8 @@ private object LessonRoutes {
     const val Packs = "profile/packs"
     const val Stats = "profile/stats"
     const val Placement = "profile/placement"
+    const val Listening = "speak/listening"
+    const val Oral = "speak/oral"
 
     fun interactive(id: String) = "lesson/run/$id"
     fun dialogue(id: String) = "dialogue/run/$id"
@@ -152,6 +156,8 @@ fun RusskiAppShell() {
                     onOpenDialogue = { id ->
                         navController.navigate(LessonRoutes.dialogue(id))
                     },
+                    onOpenListening = { navController.navigate(LessonRoutes.Listening) },
+                    onOpenOral = { navController.navigate(LessonRoutes.Oral) },
                 )
             }
             composable(RusskiDestination.Profile.route) {
@@ -227,6 +233,12 @@ fun RusskiAppShell() {
                         }
                     },
                 )
+            }
+            composable(LessonRoutes.Listening) {
+                ListeningPracticeRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Oral) {
+                OralPracticeRoute(onBack = { navController.popBackStack() })
             }
         }
     }

@@ -3,6 +3,7 @@ package fr.russki.app.feature.dialogue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import fr.russki.app.data.audio.AudioResolver
 import fr.russki.app.data.dialogue.DialogueRepository
 import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.content.ResolvedAudio
@@ -24,6 +25,8 @@ class DialogueReaderViewModel(
     private val dialogueId: String,
     private val repository: DialogueRepository =
         ServiceLocator.require().dialogueRepository,
+    private val audioResolver: AudioResolver =
+        ServiceLocator.require().audioResolver,
     private val engine: DialogueEngine = DialogueEngine(),
     private val onPedagogicalActivity: () -> Unit = {
         ServiceLocator.require().statsRepository.markPedagogicalActivity()
@@ -116,10 +119,12 @@ class DialogueReaderViewModel(
     }
 
     private fun wrap(session: DialogueSessionState): DialogueReaderUi {
-        val path = session.currentLine?.audioAssetPath
+        val line = session.currentLine
         return DialogueReaderUi(
             session = session,
-            currentAudio = repository.resolveAudio(path),
+            currentAudio = line?.let {
+                audioResolver.resolveDialogueLine(it.id, it.audioAssetPath)
+            },
         )
     }
 

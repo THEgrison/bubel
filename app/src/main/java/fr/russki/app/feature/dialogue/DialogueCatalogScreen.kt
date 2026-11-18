@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,6 +34,8 @@ import fr.russki.app.domain.model.LoadState
 @Composable
 fun DialogueCatalogRoute(
     onOpenDialogue: (String) -> Unit,
+    onOpenListening: () -> Unit = {},
+    onOpenOral: () -> Unit = {},
     viewModel: DialogueCatalogViewModel = viewModel(factory = DialogueCatalogViewModel.Factory()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,6 +43,8 @@ fun DialogueCatalogRoute(
         state = state,
         onRetry = viewModel::refresh,
         onOpenDialogue = onOpenDialogue,
+        onOpenListening = onOpenListening,
+        onOpenOral = onOpenOral,
     )
 }
 
@@ -48,10 +53,12 @@ fun DialogueCatalogScreen(
     state: LoadState<List<DialogueCatalogItem>>,
     onRetry: () -> Unit,
     onOpenDialogue: (String) -> Unit,
+    onOpenListening: () -> Unit = {},
+    onOpenOral: () -> Unit = {},
 ) {
     ScreenScaffold(
         title = "Parler",
-        subtitle = "Dialogues A1 scriptés — hors ligne, sans micro ni IA.",
+        subtitle = "Dialogues A1, écoute et oral — hors ligne, sans IA.",
     ) {
         when (state) {
             LoadState.Loading -> LoadingState()
@@ -65,14 +72,20 @@ fun DialogueCatalogScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     SoftPanel {
-                        SectionLabel("Mode texte")
+                        SectionLabel("Audio local")
                         Text(
-                            text = "Les enregistrements natifs seront proposés uniquement " +
-                                "lorsqu'un fichier audio licencié sera présent. " +
-                                "En attendant, chaque dialogue se suit entièrement à l'écrit.",
+                            text = "Les enregistrements natifs ne sont proposés que si un fichier " +
+                                "licencié est présent (docs/AUDIO.md). Sinon le mode texte reste complet.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        SpacerH(8)
+                        TextButton(onClick = onOpenListening) {
+                            Text("Mode écoute (repli texte si besoin)")
+                        }
+                        TextButton(onClick = onOpenOral) {
+                            Text("Entraînement oral (micro optionnel)")
+                        }
                     }
                     state.value.forEach { item ->
                         DialogueCard(item = item, onOpen = { onOpenDialogue(item.outline.id) })

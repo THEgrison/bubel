@@ -4,11 +4,14 @@ import android.content.Context
 import android.media.MediaPlayer
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import fr.russki.app.domain.content.ResolvedAudio
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Lecteur local minimal — pause / stop sur interruption de cycle de vie.
- * Ne lance jamais une lecture si le fichier / asset est absent.
+ * Lecteur local minimal — assets embarqués ou fichiers sous filesDir.
+ * Ne lance jamais une lecture si la ressource est absente.
+ * Libérer via [release] / cycle de vie (onDestroy).
  */
 class LocalAudioPlayer(
     private val context: Context,
@@ -19,70 +22,104 @@ class LocalAudioPlayer(
     @Volatile
     private var playingFlag: Boolean = false
 
+    @Volatile
+    private var state: PlaybackState = PlaybackState.Idle
+
+    private var lastAssetPath: String? = null
+    private var lastFile: File? = null
+
+    private val listeners = CopyOnWriteArrayList<(PlaybackState) -> Unit>()
+
     val isPlaying: Boolean get() = playingFlag
+
+    val playbackState: PlaybackState get() = state
+
+    fun addStateListener(listener: (PlaybackState) -> Unit) {
+        listeners += listener
+        listener(state)
+    }
+
+    fun removeStateListener(listener: (PlaybackState) -> Unit) {
+        listeners -= listener
+    }
+
+    fun play(resolved: ResolvedAudio): Boolean {
+        val path = resolved.assetPath
+        return if (path.startsWith("/")) {
+            playFile(File(path))
+        } else {
+            playAsset(path)
+        }
+    }
 
     fun playAsset(assetPath: String): Boolean {
         return runCatching {
-            stopInternal()
+            stopInternal(resetLast = false)
             context.assets.openFd(assetPath).use { afd ->
                 val mp = MediaPlayer()
                 mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                mp.setOnCompletionListener {
-                    playingFlag = false
-                    releasePlayer()
-                }
-                mp.setOnErrorListener { _, _, _ ->
-                    playingFlag = false
-                    releasePlayer()
-                    true
-                }
+                wireCallbacks(mp)
                 mp.prepare()
                 mp.start()
                 player = mp
-                playingFlag = true
+                lastAssetPath = assetPath
+                lastFile = null
+                setState(PlaybackState.Playing)
             }
             true
-        }.getOrDefault(false)
+        }.getOrElse {
+            setState(PlaybackState.Error)
+            false
+        }
     }
 
     fun playFile(file: File): Boolean {
-        if (!file.exists() || !file.isFile) return false
+        if (!file.exists() || !file.isFile) {
+            setState(PlaybackState.Error)
+            return false
+        }
         return runCatching {
-            stopInternal()
+            stopInternal(resetLast = false)
             val mp = MediaPlayer()
             mp.setDataSource(file.absolutePath)
-            mp.setOnCompletionListener {
-                playingFlag = false
-                releasePlayer()
-            }
-            mp.setOnErrorListener { _, _, _ ->
-                playingFlag = false
-                releasePlayer()
-                true
-            }
+            wireCallbacks(mp)
             mp.prepare()
             mp.start()
             player = mp
-            playingFlag = true
+            lastFile = file
+            lastAssetPath = null
+            setState(PlaybackState.Playing)
             true
-        }.getOrDefault(false)
+        }.getOrElse {
+            setState(PlaybackState.Error)
+            false
+        }
+    }
+
+    /** Relance la dernière source réussie (répétition). */
+    fun replay(): Boolean {
+        lastAssetPath?.let { return playAsset(it) }
+        lastFile?.let { return playFile(it) }
+        return false
     }
 
     fun pause() {
         runCatching {
             player?.takeIf { it.isPlaying }?.pause()
-            playingFlag = false
+            setState(PlaybackState.Paused)
         }
     }
 
     fun resume() {
         runCatching {
             player?.start()
-            playingFlag = player?.isPlaying == true
+            if (player?.isPlaying == true) {
+                setState(PlaybackState.Playing)
+            }
         }
     }
 
-    fun stop() = stopInternal()
+    fun stop() = stopInternal(resetLast = false)
 
     override fun onPause(owner: LifecycleOwner) {
         pause()
@@ -93,19 +130,45 @@ class LocalAudioPlayer(
     }
 
     fun release() {
-        stopInternal()
+        stopInternal(resetLast = true)
+        setState(PlaybackState.Idle)
     }
 
-    private fun stopInternal() {
-        playingFlag = false
+    private fun wireCallbacks(mp: MediaPlayer) {
+        mp.setOnCompletionListener {
+            setState(PlaybackState.Idle)
+            releasePlayer()
+        }
+        mp.setOnErrorListener { _, _, _ ->
+            setState(PlaybackState.Error)
+            releasePlayer()
+            true
+        }
+    }
+
+    private fun stopInternal(resetLast: Boolean) {
         releasePlayer()
+        if (resetLast) {
+            lastAssetPath = null
+            lastFile = null
+        }
+        if (state != PlaybackState.Error) {
+            setState(PlaybackState.Idle)
+        }
     }
 
     private fun releasePlayer() {
+        playingFlag = false
         runCatching {
             player?.reset()
             player?.release()
         }
         player = null
+    }
+
+    private fun setState(next: PlaybackState) {
+        state = next
+        playingFlag = next == PlaybackState.Playing
+        listeners.forEach { it(next) }
     }
 }

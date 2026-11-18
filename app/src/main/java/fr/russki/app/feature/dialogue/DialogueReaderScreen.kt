@@ -39,6 +39,7 @@ import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.dialogue.DialogueActivityType
 import fr.russki.app.domain.dialogue.DialoguePhase
 import fr.russki.app.domain.model.LoadState
+import fr.russki.app.feature.audio.LocalAudioControls
 import fr.russki.app.feature.stats.TrackStudyTime
 
 @Composable
@@ -166,19 +167,10 @@ private fun LinePhase(
                 }
             }
             SpacerH(12)
-            if (ui.currentAudio == null) {
-                Text(
-                    text = "Audio indisponible — aucun enregistrement natif pour cette réplique.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                Text(
-                    text = "Audio prêt (fichier local détecté).",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+            LocalAudioControls(
+                audio = ui.currentAudio,
+                unavailableMessage = "Audio indisponible — aucun enregistrement natif pour cette réplique.",
+            )
         }
         Button(onClick = onAdvance, modifier = Modifier.fillMaxWidth()) {
             Text("Continuer")
