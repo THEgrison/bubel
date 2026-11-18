@@ -6,6 +6,7 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 
 - Navigation : **Apprendre / Réviser / Parler / Profil**
 - Parcours **A1 — Premiers pas** en **Room v3** (`curriculum_*` + migration 2→3) + progression locale
+- **Parler** : 3 dialogues A1 scriptés (texte + activités), audio optionnel non inventé
 - Contenu v1 + Room : alphabet, quiz, flashcards/SRS, packs
 - Plan plateforme : [docs/MIGRATION_PLAN_PLATEFORME.md](docs/MIGRATION_PLAN_PLATEFORME.md)
 - Mode avion : [docs/OFFLINE.md](docs/OFFLINE.md) · Online : [docs/ONLINE_ARCHITECTURE.md](docs/ONLINE_ARCHITECTURE.md)

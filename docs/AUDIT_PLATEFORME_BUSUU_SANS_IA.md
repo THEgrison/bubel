@@ -182,12 +182,12 @@ Livré. Validation reçue → étape 1.
 - `CurriculumRepository` lit Room ; progression `user_lesson_progress` inchangée.
 - Tests : `CurriculumRoomTest` + migration 1→3 mise à jour.
 
-### Étape 2 — Étendre le moteur d’exercices
+### Étape 2 — Dialogues interactifs — **livré**
 
-- Type `DialogueTurn` / `DialogueChoice` (données **fixes**, pas générées).
-- Intégrer dans `LessonEngine` (phase dialogue optionnelle) ou sous-moteur dédié.
-- Explications pédagogiques FR sur chaque branche.
-- Tests : graphe de dialogue, branche incorrecte → feedback, fin de dialogue.
+- `DialogueEngine` + seed A1 (3 dialogues) + catalogue/lecteur sous Parler.
+- Activités : traduction, réponse, mot manquant — `AnswerMatcher`, hors ligne.
+- Progression via `user_lesson_progress` (ids `dialogue-*`) — **pas de migration Room**.
+- Audio : chemins null ; UI « Audio indisponible ».
 
 ### Étape 3 — Contenu A1 enrichi (hors IA)
 

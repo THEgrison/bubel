@@ -26,6 +26,7 @@ import androidx.navigation.navArgument
 import fr.russki.app.feature.alphabet.AlphabetExercisesRoute
 import fr.russki.app.feature.alphabet.AlphabetRoute
 import fr.russki.app.feature.alphabet.LetterDetailRoute
+import fr.russki.app.feature.dialogue.DialogueReaderRoute
 import fr.russki.app.feature.flashcards.FlashcardsRoute
 import fr.russki.app.feature.learn.LearnRoute
 import fr.russki.app.feature.lesson.LessonRoute
@@ -38,6 +39,7 @@ import fr.russki.app.feature.vocabulary.GreetingsVocabularyRoute
 
 private object LessonRoutes {
     const val Interactive = "lesson/run/{lessonId}"
+    const val Dialogue = "dialogue/run/{dialogueId}"
     const val Alphabet = "lesson/alphabet"
     const val AlphabetExercises = "lesson/alphabet/exercises"
     const val Letter = "lesson/alphabet/letter/{letterId}"
@@ -47,6 +49,7 @@ private object LessonRoutes {
     const val Packs = "profile/packs"
 
     fun interactive(id: String) = "lesson/run/$id"
+    fun dialogue(id: String) = "dialogue/run/$id"
     fun letter(id: String) = "lesson/alphabet/letter/$id"
 }
 
@@ -140,7 +143,11 @@ fun RusskiAppShell() {
                 )
             }
             composable(RusskiDestination.Speak.route) {
-                SpeakRoute()
+                SpeakRoute(
+                    onOpenDialogue = { id ->
+                        navController.navigate(LessonRoutes.dialogue(id))
+                    },
+                )
             }
             composable(RusskiDestination.Profile.route) {
                 ProfileRoute(
@@ -157,6 +164,16 @@ fun RusskiAppShell() {
                     onBack = { navController.popBackStack() },
                     onOpenLegacyAlphabet = { navController.navigate(LessonRoutes.Alphabet) },
                     onOpenLegacyGreetings = { navController.navigate(LessonRoutes.Greetings) },
+                )
+            }
+            composable(
+                route = LessonRoutes.Dialogue,
+                arguments = listOf(navArgument("dialogueId") { type = NavType.StringType }),
+            ) { entry ->
+                val dialogueId = entry.arguments?.getString("dialogueId").orEmpty()
+                DialogueReaderRoute(
+                    dialogueId = dialogueId,
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(LessonRoutes.Alphabet) {

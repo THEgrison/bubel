@@ -5,6 +5,7 @@ import fr.russki.app.data.content.AssetAudioAvailability
 import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.OfflineContentRepository
 import fr.russki.app.data.curriculum.CurriculumRepository
+import fr.russki.app.data.dialogue.DialogueRepository
 import fr.russki.app.data.flashcard.FlashcardRepository
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.online.OnlineConfig
@@ -54,6 +55,12 @@ class AppContainer(
             db = database,
             progressRepository = lessonProgressRepository,
             ensureSeeded = { seedInitializer.ensureSeeded() },
+        )
+
+    val dialogueRepository: DialogueRepository =
+        DialogueRepository(
+            progressRepository = lessonProgressRepository,
+            audioAvailability = AssetAudioAvailability(appContext),
         )
 
     val quizRepository: QuizRepository = QuizRepository(

@@ -57,4 +57,19 @@ class LessonProgressRepository(
             ),
         )
     }
+
+    /**
+     * Remet à zéro la progression d'un id (leçon ou dialogue) sans toucher aux autres.
+     * Pas de migration : réutilise `user_lesson_progress`.
+     */
+    suspend fun resetProgress(contentId: String) {
+        dao.upsert(
+            UserLessonProgressEntity(
+                lessonId = contentId,
+                completedExerciseCount = 0,
+                lastOpenedEpochMs = clock(),
+                completedAtEpochMs = null,
+            ),
+        )
+    }
 }
