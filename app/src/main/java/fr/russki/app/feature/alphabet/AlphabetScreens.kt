@@ -208,15 +208,35 @@ private fun LetterBody(letter: AlphabetLetter, hasAudio: Boolean) {
         SoftPanel {
             SectionLabel("Guide de prononciation")
             Text(letter.pronunciationGuideFr, style = MaterialTheme.typography.bodyLarge)
+            SpacerH(6)
+            Text(
+                "Ce guide est une aide pour francophones — pas une transcription IPA.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         SoftPanel {
             SectionLabel("Son dans les mots")
             Text(letter.soundInWordsFr, style = MaterialTheme.typography.bodyLarge)
         }
+        letter.confusionFr?.let { note ->
+            SoftPanel {
+                SectionLabel("Attention / confusion")
+                Text(note, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
         SoftPanel {
             SectionLabel("Exemple")
             CyrillicSample(letter.exampleWordRu)
             SpacerH(6)
+            letter.exampleReadingAid?.let { aid ->
+                Text(
+                    "Aide de lecture : $aid (translittération)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                SpacerH(6)
+            }
             Text(letter.exampleWordFr, style = MaterialTheme.typography.bodyLarge)
         }
         SpacerH(8)

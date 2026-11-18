@@ -4,6 +4,7 @@ import fr.russki.app.data.content.seed.A1CurriculumSeed
 import fr.russki.app.data.content.seed.A1DialoguesSeed
 import fr.russki.app.data.content.seed.A1Unit1Seed
 import fr.russki.app.data.content.seed.AlphabetLettersSeed
+import fr.russki.app.data.content.seed.CyrillicPathSeed
 import fr.russki.app.data.content.seed.GreetingsVocabularySeed
 import fr.russki.app.data.progress.ProgressContentIds
 import fr.russki.app.domain.dialogue.DialogueActivityType
@@ -31,24 +32,81 @@ object ReviewableCatalog {
             }
         }
 
-        // —— Unité 1 ——
-        if (A1Unit1Seed.LESSON_ALPHABET in completedContentIds) {
-            AlphabetLettersSeed.letters.take(8).forEach { letter ->
+        // —— Parcours cyrillique (lettres / syllabes / mots effectivement enseignés) ——
+        CyrillicPathSeed.groups.forEach { group ->
+            if (group.lessonId in completedContentIds) {
+                group.letterIds.mapNotNull { AlphabetLettersSeed.byId(it) }.forEach { letter ->
+                    add(
+                        ReviewItem(
+                            id = ReviewIds.letter(letter.id),
+                            kind = ReviewItemKind.Vocabulary,
+                            unlockContentId = group.lessonId,
+                            contentRefId = letter.id,
+                            promptFr = "Quel est le nom russe de la lettre ${letter.uppercase} ?",
+                            stimulus = "${letter.uppercase} ${letter.lowercase}",
+                            choices = letterNameChoices(letter.nameRu),
+                            acceptedAnswers = listOf(letter.nameRu),
+                            explanationFr = "${letter.uppercase} s'appelle « ${letter.nameRu} ». " +
+                                (letter.confusionFr ?: ""),
+                        ),
+                    )
+                }
+                CyrillicPathSeed.exercisesFor(group.lessonId).forEach {
+                    add(fromExercise(it, group.lessonId))
+                }
+            }
+        }
+        listOf(CyrillicPathSeed.LESSON_SYLLABLES, CyrillicPathSeed.LESSON_WORDS, CyrillicPathSeed.LESSON_FINAL)
+            .forEach { lessonId ->
+                if (lessonId in completedContentIds) {
+                    CyrillicPathSeed.exercisesFor(lessonId).forEach { add(fromExercise(it, lessonId)) }
+                }
+            }
+        if (CyrillicPathSeed.LESSON_SYLLABLES in completedContentIds) {
+            CyrillicPathSeed.syllables.forEach { syl ->
                 add(
                     ReviewItem(
-                        id = ReviewIds.letter(letter.id),
+                        id = ReviewIds.vocab(syl.id),
                         kind = ReviewItemKind.Vocabulary,
-                        unlockContentId = A1Unit1Seed.LESSON_ALPHABET,
-                        contentRefId = letter.id,
-                        promptFr = "Quel est le nom russe de la lettre ${letter.uppercase} ?",
-                        stimulus = "${letter.uppercase} ${letter.lowercase}",
-                        choices = letterNameChoices(letter.nameRu),
-                        acceptedAnswers = listOf(letter.nameRu),
-                        explanationFr = "${letter.uppercase} s'appelle « ${letter.nameRu} ».",
+                        unlockContentId = CyrillicPathSeed.LESSON_SYLLABLES,
+                        contentRefId = syl.id,
+                        promptFr = "Aide de lecture pour « ${syl.textRu} » ?",
+                        stimulus = syl.textRu,
+                        choices = listOf(syl.readingAid) +
+                            CyrillicPathSeed.syllables.filter { it.id != syl.id }
+                                .map { it.readingAid }.distinct().take(3),
+                        acceptedAnswers = listOf(syl.readingAid),
+                        explanationFr = "« ${syl.textRu} » → ${syl.readingAid} (translittération, pas IPA).",
                     ),
                 )
             }
-            A1Unit1Seed.exercisesFor(A1Unit1Seed.LESSON_ALPHABET).forEach { add(fromExercise(it, A1Unit1Seed.LESSON_ALPHABET)) }
+        }
+        if (CyrillicPathSeed.LESSON_WORDS in completedContentIds) {
+            CyrillicPathSeed.words.forEach { w ->
+                add(
+                    ReviewItem(
+                        id = ReviewIds.vocab(w.id),
+                        kind = ReviewItemKind.Vocabulary,
+                        unlockContentId = CyrillicPathSeed.LESSON_WORDS,
+                        contentRefId = w.id,
+                        promptFr = "Que signifie « ${w.textRu} » ?",
+                        stimulus = w.textRu,
+                        choices = listOf(w.translationFr) +
+                            CyrillicPathSeed.words.filter { it.id != w.id }
+                                .map { it.translationFr }.distinct().take(3),
+                        acceptedAnswers = listOf(w.translationFr) +
+                            listOf(w.translationFr.substringBefore("/").trim()),
+                        explanationFr = "${w.textRu} = ${w.translationFr}.",
+                    ),
+                )
+            }
+        }
+
+        // —— Unité 1 (référentiel alphabet court — sans doublon de cartes lettre) ——
+        if (A1Unit1Seed.LESSON_ALPHABET in completedContentIds) {
+            A1Unit1Seed.exercisesFor(A1Unit1Seed.LESSON_ALPHABET).forEach {
+                add(fromExercise(it, A1Unit1Seed.LESSON_ALPHABET))
+            }
         }
 
         if (A1Unit1Seed.LESSON_GREETINGS in completedContentIds) {
@@ -102,8 +160,10 @@ object ReviewableCatalog {
         }
 
         // —— Leçons curriculum A1 (exercices existants) ——
+        val cyrillicIds = CyrillicPathSeed.allLessonIds().toSet()
         A1CurriculumSeed.allLessonIds().forEach { lessonId ->
             if (lessonId in completedContentIds &&
+                lessonId !in cyrillicIds &&
                 lessonId !in setOf(
                     A1Unit1Seed.LESSON_ALPHABET,
                     A1Unit1Seed.LESSON_GREETINGS,

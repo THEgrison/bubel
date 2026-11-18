@@ -16,6 +16,7 @@ object A1CurriculumSeed {
 
     val units: List<CourseUnit> by lazy {
         listOf(
+            CyrillicPathSeed.unit,
             A1Unit1Seed.unit,
             unitPronouns,
             unitNumbers,
@@ -29,6 +30,8 @@ object A1CurriculumSeed {
     }
 
     fun exercisesFor(lessonId: String): List<InteractiveExercise> {
+        val fromCyrillic = CyrillicPathSeed.exercisesFor(lessonId)
+        if (fromCyrillic.isNotEmpty()) return fromCyrillic
         val fromUnit1 = A1Unit1Seed.exercisesFor(lessonId)
         if (fromUnit1.isNotEmpty()) return fromUnit1
         return extras[lessonId].orEmpty()

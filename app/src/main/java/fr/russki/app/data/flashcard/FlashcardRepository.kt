@@ -35,16 +35,21 @@ class FlashcardRepository(
 
     suspend fun reviewHistoryCount(): Int = historyDao.count()
 
-    private fun ReviewItem.toFlashcard(): Flashcard =
-        Flashcard(
+    private fun ReviewItem.toFlashcard(): Flashcard {
+        val front = stimulus.ifBlank { promptFr }
+        val reading = fr.russki.app.domain.pronunciation.RussianPronunciation
+            .lookupOrTransliterate(front)
+        val hasCyrillic = front.any { it in '\u0400'..'\u04FF' }
+        return Flashcard(
             id = id,
             contentRefId = contentRefId,
-            frontRu = stimulus.ifBlank { promptFr },
+            frontRu = front,
             backFr = primaryAnswer,
-            transliteration = null,
+            transliteration = if (hasCyrillic) reading.transliteration else null,
             stressedRu = null,
             exampleRu = null,
             exampleFr = explanationFr,
             audioAssetPath = null,
         )
+    }
 }

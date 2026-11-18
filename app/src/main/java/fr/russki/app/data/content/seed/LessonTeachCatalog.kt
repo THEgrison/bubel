@@ -11,6 +11,7 @@ import fr.russki.app.domain.pronunciation.RussianPronunciation
 object LessonTeachCatalog {
 
     fun forLesson(lessonId: String): List<TeachableItem> = when (lessonId) {
+        in CyrillicPathSeed.allLessonIds() -> CyrillicPathSeed.teachablesFor(lessonId)
         A1Unit1Seed.LESSON_GREETINGS -> greetings
         A1Unit1Seed.LESSON_INTRODUCE -> introduce
         A1Unit1Seed.LESSON_ALPHABET -> alphabetSample
@@ -34,27 +35,28 @@ object LessonTeachCatalog {
     }
 
     /** Tous les ids de leçons A1 couverts par ce catalogue. */
-    fun coveredLessonIds(): Set<String> = setOf(
-        A1Unit1Seed.LESSON_ALPHABET,
-        A1Unit1Seed.LESSON_GREETINGS,
-        A1Unit1Seed.LESSON_INTRODUCE,
-        A1CurriculumSeed.LESSON_PRONOUNS,
-        A1CurriculumSeed.LESSON_SIMPLE,
-        A1CurriculumSeed.LESSON_NUMBERS,
-        A1CurriculumSeed.LESSON_AGE,
-        A1CurriculumSeed.LESSON_COUNTRIES,
-        A1CurriculumSeed.LESSON_LANGUAGES,
-        A1CurriculumSeed.LESSON_FAMILY,
-        A1CurriculumSeed.LESSON_DESCRIBE,
-        A1CurriculumSeed.LESSON_FOOD,
-        A1CurriculumSeed.LESSON_ORDER,
-        A1CurriculumSeed.LESSON_CITY,
-        A1CurriculumSeed.LESSON_TRANSPORT,
-        A1CurriculumSeed.LESSON_SHOPPING,
-        A1CurriculumSeed.LESSON_PRICES,
-        A1CurriculumSeed.LESSON_REVIEW_VOCAB,
-        A1CurriculumSeed.LESSON_REVIEW_PHRASES,
-    )
+    fun coveredLessonIds(): Set<String> =
+        CyrillicPathSeed.allLessonIds().toSet() + setOf(
+            A1Unit1Seed.LESSON_ALPHABET,
+            A1Unit1Seed.LESSON_GREETINGS,
+            A1Unit1Seed.LESSON_INTRODUCE,
+            A1CurriculumSeed.LESSON_PRONOUNS,
+            A1CurriculumSeed.LESSON_SIMPLE,
+            A1CurriculumSeed.LESSON_NUMBERS,
+            A1CurriculumSeed.LESSON_AGE,
+            A1CurriculumSeed.LESSON_COUNTRIES,
+            A1CurriculumSeed.LESSON_LANGUAGES,
+            A1CurriculumSeed.LESSON_FAMILY,
+            A1CurriculumSeed.LESSON_DESCRIBE,
+            A1CurriculumSeed.LESSON_FOOD,
+            A1CurriculumSeed.LESSON_ORDER,
+            A1CurriculumSeed.LESSON_CITY,
+            A1CurriculumSeed.LESSON_TRANSPORT,
+            A1CurriculumSeed.LESSON_SHOPPING,
+            A1CurriculumSeed.LESSON_PRICES,
+            A1CurriculumSeed.LESSON_REVIEW_VOCAB,
+            A1CurriculumSeed.LESSON_REVIEW_PHRASES,
+        )
 
     private fun item(
         id: String,

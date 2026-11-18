@@ -13,10 +13,11 @@ class A1CurriculumSeedTest {
     @Test
     fun units_areOrderedAndAllA1() {
         val units = A1CurriculumSeed.units
-        assertEquals(9, units.size)
-        assertEquals((1..9).toList(), units.map { it.sortOrder })
+        assertEquals(10, units.size)
+        assertEquals((0..9).toList(), units.map { it.sortOrder })
         assertTrue(units.all { it.cefrLevel == CefrLevel.A1 })
-        assertEquals(A1Unit1Seed.UNIT_ID, units.first().id)
+        assertEquals(CyrillicPathSeed.UNIT_ID, units.first().id)
+        assertEquals(A1Unit1Seed.UNIT_ID, units[1].id)
     }
 
     @Test
@@ -32,16 +33,12 @@ class A1CurriculumSeedTest {
     }
 
     @Test
-    fun eachLesson_hasThreeExercises_withExplanations() {
+    fun eachLesson_hasExercises_withExplanations() {
         A1CurriculumSeed.units.forEach { unit ->
             unit.lessons.forEach { lesson ->
                 val ex = A1CurriculumSeed.exercisesFor(lesson.id)
-                assertEquals(
-                    "Leçon ${lesson.id}",
-                    3,
-                    ex.size,
-                )
-                assertEquals(lesson.exerciseCount, ex.size)
+                assertTrue("Leçon ${lesson.id} sans exercices", ex.size >= 3)
+                assertEquals("Leçon ${lesson.id}", lesson.exerciseCount, ex.size)
                 assertTrue(ex.all { it.explanationFr.isNotBlank() })
                 assertTrue(ex.all { it.acceptedAnswers.isNotEmpty() })
                 assertEquals(ex.map { it.id }.toSet().size, ex.size)
@@ -74,10 +71,11 @@ class A1CurriculumSeedTest {
     }
 
     @Test
-    fun counts_nineteenLessonsFiftySevenExercises() {
+    fun counts_includeCyrillicPath() {
         val lessons = A1CurriculumSeed.allLessonIds()
-        assertEquals(19, lessons.size)
+        assertEquals(28, lessons.size)
+        assertTrue(lessons.containsAll(CyrillicPathSeed.allLessonIds()))
         val exercises = lessons.sumOf { A1CurriculumSeed.exercisesFor(it).size }
-        assertEquals(57, exercises)
+        assertEquals(103, exercises)
     }
 }

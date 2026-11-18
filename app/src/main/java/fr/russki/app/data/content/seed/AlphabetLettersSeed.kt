@@ -1,15 +1,52 @@
 package fr.russki.app.data.content.seed
 
 import fr.russki.app.domain.content.AlphabetLetter
+import fr.russki.app.domain.pronunciation.RussianPronunciation
 
 /**
  * Les 33 lettres russes dans l’ordre alphabétique canonique.
  * Données pédagogiques pures — aucun lien avec Compose / UI.
  *
- * Les champs audio sont null : aucun enregistrement natif n’est encore embarqué.
+ * Les champs audio sont null : aucun enregistrement natif n’est encore embarqué pour les lettres.
+ * L’ordre d’**enseignement** (groupes pour francophones) est dans [CyrillicPathSeed].
  */
 internal object AlphabetLettersSeed {
-    val letters: List<AlphabetLetter> = listOf(
+    val letters: List<AlphabetLetter> = buildLetters().map { enrich(it) }
+
+    fun byId(id: String): AlphabetLetter? = letters.find { it.id == id }
+
+    fun byUppercase(upper: String): AlphabetLetter? =
+        letters.find { it.uppercase.equals(upper, ignoreCase = false) }
+
+    private fun enrich(letter: AlphabetLetter): AlphabetLetter {
+        val reading = RussianPronunciation.lookupOrTransliterate(letter.exampleWordRu)
+        return letter.copy(
+            confusionFr = letter.confusionFr ?: confusionFor(letter.uppercase),
+            exampleReadingAid = letter.exampleReadingAid
+                ?: reading.transliteration.takeIf { !reading.stressUnknown || reading.transliteration.isNotBlank() },
+        )
+    }
+
+    private fun confusionFor(upper: String): String? = when (upper) {
+        "В" -> "Ressemble au B latin, mais se lit plutôt comme un v (approximation) — pas comme b."
+        "Н" -> "Ressemble au H latin, mais c’est un n ; ne jamais lire « h »."
+        "Р" -> "Ressemble au P latin, mais c’est un r (souvent roulé) — pas un p."
+        "С" -> "Ressemble au C latin, mais se lit s (approximation) — pas « ké » / « sé » français du C."
+        "У" -> "Peut rappeler un Y latin imprimé ; son proche de « ou », pas de « i grec »."
+        "Х" -> "Peut rappeler un X latin ; son frotté (type « ch » allemand), pas ks."
+        "Е" -> "Distinct de Ё : Е n’est pas toujours « yo ». Ne pas confondre nom de lettre et son en mot."
+        "Ё" -> "Toujours sous l’accent en russe standard ; ne pas la traiter comme un simple Е."
+        "Э" -> "É sans la glisse initiale fréquente de Е en début de mot."
+        "Ы" -> "Sans équivalent stable en français — ne pas forcer vers un « i » français."
+        "Ь" -> "Signe mou : pas une voyelle ; palatalise surtout la consonne précédente."
+        "Ъ" -> "Signe dur : pas une voyelle ; sépare / bloque la palatalisation."
+        "Ш" -> "Distinct de Щ : timbres différents — ne pas les fusionner."
+        "Щ" -> "Distinct de Ш ; approximation « plus mou/long » seulement indicative."
+        "З" -> "Ne pas confondre avec le chiffre 3 ni avec Э."
+        else -> null
+    }
+
+    private fun buildLetters(): List<AlphabetLetter> = listOf(
         AlphabetLetter(
             id = "letter-01-a",
             order = 1,

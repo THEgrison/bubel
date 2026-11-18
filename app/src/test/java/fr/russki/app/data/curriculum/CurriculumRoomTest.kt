@@ -11,6 +11,7 @@ import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.CurriculumVersions
 import fr.russki.app.data.content.seed.A1CurriculumSeed
 import fr.russki.app.data.content.seed.A1Unit1Seed
+import fr.russki.app.data.content.seed.CyrillicPathSeed
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.local.migration.RusskiMigrations
 import fr.russki.app.data.progress.LessonProgressRepository
@@ -50,9 +51,9 @@ class CurriculumRoomTest {
     fun seed_writesA1CurriculumIdempotently() = runBlocking {
         val seed = ContentSeedInitializer(db)
         val first = seed.ensureSeeded()
-        assertEquals(9, first.curriculumUnitCount)
-        assertEquals(19, first.curriculumLessonCount)
-        assertEquals(57, first.curriculumExerciseCount)
+        assertEquals(10, first.curriculumUnitCount)
+        assertEquals(28, first.curriculumLessonCount)
+        assertEquals(103, first.curriculumExerciseCount)
         assertEquals(
             CurriculumVersions.A1_PATH,
             db.contentMetaDao().get(ContentMetaKeys.CURRICULUM_VERSION),
@@ -60,9 +61,9 @@ class CurriculumRoomTest {
 
         val second = seed.ensureSeeded()
         assertTrue(second.alreadySeeded)
-        assertEquals(9, db.curriculumUnitDao().count())
-        assertEquals(19, db.curriculumLessonDao().count())
-        assertEquals(57, db.curriculumExerciseDao().count())
+        assertEquals(10, db.curriculumUnitDao().count())
+        assertEquals(28, db.curriculumLessonDao().count())
+        assertEquals(103, db.curriculumExerciseDao().count())
     }
 
     @Test
@@ -72,8 +73,8 @@ class CurriculumRoomTest {
 
         val path = repo.loadA1Path()
         assertEquals(CefrLevel.A1, path.cefrLevel)
-        assertEquals(9, path.units.size)
-        assertEquals(A1Unit1Seed.UNIT_ID, path.units.first().unit.id)
+        assertEquals(10, path.units.size)
+        assertEquals(CyrillicPathSeed.UNIT_ID, path.units.first().unit.id)
         assertEquals(
             A1CurriculumSeed.units.map { it.id },
             path.units.map { it.unit.id },
@@ -159,9 +160,9 @@ class CurriculumRoomTest {
             assertEquals(0, migrated.curriculumUnitDao().count())
 
             val result = ContentSeedInitializer(migrated).ensureSeeded()
-            assertEquals(9, result.curriculumUnitCount)
-            assertEquals(19, result.curriculumLessonCount)
-            assertEquals(57, result.curriculumExerciseCount)
+            assertEquals(10, result.curriculumUnitCount)
+            assertEquals(28, result.curriculumLessonCount)
+            assertEquals(103, result.curriculumExerciseCount)
             assertFalse(result.alreadySeeded)
 
             assertEquals(

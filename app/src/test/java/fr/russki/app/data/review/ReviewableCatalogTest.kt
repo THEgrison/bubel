@@ -2,6 +2,7 @@ package fr.russki.app.data.review
 
 import fr.russki.app.data.content.seed.A1DialoguesSeed
 import fr.russki.app.data.content.seed.A1Unit1Seed
+import fr.russki.app.data.content.seed.CyrillicPathSeed
 import fr.russki.app.domain.review.ReviewIds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,7 +45,7 @@ class ReviewableCatalogTest {
 
     @Test
     fun alphabetLetterReviews_alwaysOfferFourDistinctChoices() {
-        val items = ReviewableCatalog.itemsForCompleted(setOf(A1Unit1Seed.LESSON_ALPHABET))
+        val items = ReviewableCatalog.itemsForCompleted(setOf(CyrillicPathSeed.LESSON_G1))
             .filter { it.id.startsWith("rv-letter-") }
         assertTrue(items.isNotEmpty())
         items.forEach { item ->

@@ -265,8 +265,8 @@ class OfflinePersistenceTest {
             val seeded = ContentSeedInitializer(migrated).ensureSeeded()
             assertEquals(33, migrated.contentLetterDao().count())
             assertEquals(42L, migrated.srsCardDao().get("legacy-card")?.nextReviewEpochMs)
-            assertEquals(9, seeded.curriculumUnitCount)
-            assertEquals(19, seeded.curriculumLessonCount)
+            assertEquals(10, seeded.curriculumUnitCount)
+            assertEquals(28, seeded.curriculumLessonCount)
         }
         migrated.close()
         context.deleteDatabase(name)

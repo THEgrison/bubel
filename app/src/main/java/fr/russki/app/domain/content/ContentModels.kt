@@ -40,6 +40,13 @@ data class AlphabetLetter(
     val exampleWordFr: String,
     /** Chemin d'asset audio, ou null si aucun enregistrement n'est fourni. */
     val audioAssetPath: String?,
+    /**
+     * Confusion fréquente (lookalike latin / autre lettre russe).
+     * Non persisté en Room — catalogue pédagogique en mémoire.
+     */
+    val confusionFr: String? = null,
+    /** Aide de lecture du mot d’exemple (translittération), pas de l’IPA. */
+    val exampleReadingAid: String? = null,
 )
 
 enum class AlphabetExerciseType {

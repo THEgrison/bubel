@@ -15,8 +15,9 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 - **Révision SRS** (Réviser) : file limitée aux notions déjà étudiées, session courte avec correction ([docs/SRS.md](docs/SRS.md))
 - Contenu v1 + Room : alphabet, quiz, flashcards/SRS, packs
 - **Pédagogie leçon** : fiches `TeachableItem` (usage, exemple, registre, grammaire, confusion) → exercices → rattrapage (mélange, anti-boucle) → test final sans indices ; relecture des fiches pendant la pratique
+- **Lire le cyrillique** : unité dédiée (6 groupes + syllabes + mots + bilan) couvrant les 33 lettres dans un ordre pour francophones ; cartes SRS débloquées par leçon terminée
 - **Flashcards** : modes Facile (RU→FR), Normal (FR→RU), Difficile (écoute/rappel), Toutes — distincts de l’échéance SRS
-- Translittération = aide de lecture (pas d’IPA) ; audio uniquement si fichier embarqué
+- Translittération = aide de lecture (pas d’IPA) ; audio uniquement si fichier embarqué ([docs/PRONUNCIATION.md](docs/PRONUNCIATION.md))
 - Plan plateforme : [docs/MIGRATION_PLAN_PLATEFORME.md](docs/MIGRATION_PLAN_PLATEFORME.md)
 - Mode avion : [docs/OFFLINE.md](docs/OFFLINE.md) · Online : [docs/ONLINE_ARCHITECTURE.md](docs/ONLINE_ARCHITECTURE.md)
 - Audit pré-v1 : [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)

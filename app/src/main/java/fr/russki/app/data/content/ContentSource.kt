@@ -16,8 +16,8 @@ object ContentMetaKeys {
 object CurriculumVersions {
     /** Ancienne meta (unité 1 seule) — conservée pour lecture historique. */
     const val A1_UNIT1 = "a1-unit1-1.0.0"
-    /** Parcours A1 enrichi (unités 1–9) — seed INSERT IGNORE, progression intacte. */
-    const val A1_PATH = "a1-path-1.1.0"
+    /** Parcours A1 enrichi + unité cyrillique progressive — seed INSERT IGNORE, progression intacte. */
+    const val A1_PATH = "a1-path-1.2.0"
 }
 
 object PackIds {
