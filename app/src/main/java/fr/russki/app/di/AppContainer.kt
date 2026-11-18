@@ -21,6 +21,8 @@ import fr.russki.app.data.pack.PackCoordinator
 import fr.russki.app.data.pack.PackRepository
 import fr.russki.app.data.progress.LessonProgressRepository
 import fr.russki.app.data.quiz.QuizRepository
+import fr.russki.app.data.placement.LocalPlacementStore
+import fr.russki.app.data.placement.PlacementRepository
 import fr.russki.app.data.stats.LocalStatsStore
 import fr.russki.app.data.stats.StatsRepository
 import fr.russki.app.data.stats.StudySessionTracker
@@ -76,6 +78,15 @@ class AppContainer(
             progressRepository = lessonProgressRepository,
             db = database,
             localStore = localStatsStore,
+        )
+
+    val localPlacementStore: LocalPlacementStore = LocalPlacementStore(appContext)
+
+    val placementRepository: PlacementRepository =
+        PlacementRepository(
+            curriculumRepository = curriculumRepository,
+            progressRepository = lessonProgressRepository,
+            store = localPlacementStore,
         )
 
     val quizRepository: QuizRepository = QuizRepository(

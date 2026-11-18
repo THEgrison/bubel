@@ -35,6 +35,7 @@ import fr.russki.app.domain.stats.StudyTimePolicy
 fun ProfileRoute(
     onOpenPacks: () -> Unit = {},
     onOpenStats: () -> Unit = {},
+    onOpenPlacement: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -47,6 +48,7 @@ fun ProfileRoute(
         onThemeChange = viewModel::setThemePreference,
         onOpenPacks = onOpenPacks,
         onOpenStats = onOpenStats,
+        onOpenPlacement = onOpenPlacement,
         onSyncOptInChange = viewModel::setSyncOptIn,
         onSyncPush = viewModel::requestSyncPush,
     )
@@ -62,6 +64,7 @@ fun ProfileScreen(
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit = {},
     onOpenStats: () -> Unit = {},
+    onOpenPlacement: () -> Unit = {},
     onSyncOptInChange: (Boolean) -> Unit = {},
     onSyncPush: () -> Unit = {},
 ) {
@@ -85,6 +88,7 @@ fun ProfileScreen(
                     onThemeChange = onThemeChange,
                     onOpenPacks = onOpenPacks,
                     onOpenStats = onOpenStats,
+                    onOpenPlacement = onOpenPlacement,
                     onSyncOptInChange = onSyncOptInChange,
                     onSyncPush = onSyncPush,
                 )
@@ -102,6 +106,7 @@ private fun ProfileContent(
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit,
     onOpenStats: () -> Unit,
+    onOpenPlacement: () -> Unit,
     onSyncOptInChange: (Boolean) -> Unit,
     onSyncPush: () -> Unit,
 ) {
@@ -146,6 +151,9 @@ private fun ProfileContent(
             SpacerH(12)
             TextButton(onClick = onOpenStats) {
                 Text("Voir les statistiques")
+            }
+            TextButton(onClick = onOpenPlacement) {
+                Text("Test de placement")
             }
         }
 

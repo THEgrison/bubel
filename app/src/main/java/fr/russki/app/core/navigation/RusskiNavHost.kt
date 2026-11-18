@@ -31,6 +31,7 @@ import fr.russki.app.feature.flashcards.FlashcardsRoute
 import fr.russki.app.feature.learn.LearnRoute
 import fr.russki.app.feature.lesson.LessonRoute
 import fr.russki.app.feature.packs.PacksRoute
+import fr.russki.app.feature.placement.PlacementRoute
 import fr.russki.app.feature.profile.ProfileRoute
 import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
@@ -49,6 +50,7 @@ private object LessonRoutes {
     const val Flashcards = "lesson/flashcards"
     const val Packs = "profile/packs"
     const val Stats = "profile/stats"
+    const val Placement = "profile/placement"
 
     fun interactive(id: String) = "lesson/run/$id"
     fun dialogue(id: String) = "dialogue/run/$id"
@@ -127,6 +129,7 @@ fun RusskiAppShell() {
                     onOpenLesson = { id ->
                         navController.navigate(LessonRoutes.interactive(id))
                     },
+                    onOpenPlacement = { navController.navigate(LessonRoutes.Placement) },
                 )
             }
             composable(RusskiDestination.Review.route) {
@@ -155,6 +158,7 @@ fun RusskiAppShell() {
                 ProfileRoute(
                     onOpenPacks = { navController.navigate(LessonRoutes.Packs) },
                     onOpenStats = { navController.navigate(LessonRoutes.Stats) },
+                    onOpenPlacement = { navController.navigate(LessonRoutes.Placement) },
                 )
             }
             composable(
@@ -213,6 +217,16 @@ fun RusskiAppShell() {
             }
             composable(LessonRoutes.Stats) {
                 StatsRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Placement) {
+                PlacementRoute(
+                    onBack = { navController.popBackStack() },
+                    onOpenRecommendedLesson = { id ->
+                        navController.navigate(LessonRoutes.interactive(id)) {
+                            popUpTo(LessonRoutes.Placement) { inclusive = true }
+                        }
+                    },
+                )
             }
         }
     }

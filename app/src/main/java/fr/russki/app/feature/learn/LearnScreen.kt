@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +37,7 @@ import fr.russki.app.domain.model.LoadState
 @Composable
 fun LearnRoute(
     onOpenLesson: (String) -> Unit,
+    onOpenPlacement: () -> Unit = {},
     viewModel: LearnViewModel = viewModel(factory = LearnViewModel.Factory()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,6 +45,7 @@ fun LearnRoute(
         state = state,
         onRetry = viewModel::refresh,
         onOpenLesson = onOpenLesson,
+        onOpenPlacement = onOpenPlacement,
     )
 }
 
@@ -51,6 +54,7 @@ fun LearnScreen(
     state: LoadState<PathWithProgress>,
     onRetry: () -> Unit,
     onOpenLesson: (String) -> Unit,
+    onOpenPlacement: () -> Unit = {},
 ) {
     ScreenScaffold(
         title = "Apprendre",
@@ -76,6 +80,10 @@ fun LearnScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        SpacerH(8)
+                        TextButton(onClick = onOpenPlacement) {
+                            Text("Test de placement (estimation)")
+                        }
                     }
                     path.units.forEach { unitBlock ->
                         UnitSection(
