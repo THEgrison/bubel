@@ -27,6 +27,12 @@ interface QuizSessionDao {
     @Query("SELECT * FROM quiz_answers WHERE sessionId = :sessionId")
     suspend fun getAnswers(sessionId: String): List<QuizAnswerEntity>
 
+    @Query("SELECT COUNT(*) FROM quiz_answers")
+    suspend fun countAnswers(): Int
+
+    @Query("SELECT COUNT(*) FROM quiz_answers WHERE isCorrect = 1")
+    suspend fun countCorrectAnswers(): Int
+
     @Query(
         """
         SELECT * FROM quiz_sessions

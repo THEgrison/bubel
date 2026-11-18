@@ -41,6 +41,7 @@ import fr.russki.app.domain.exercise.InteractiveExerciseType
 import fr.russki.app.domain.lesson.LessonPhase
 import fr.russki.app.domain.lesson.LessonSessionState
 import fr.russki.app.domain.model.LoadState
+import fr.russki.app.feature.stats.TrackStudyTime
 
 @Composable
 fun LessonRoute(
@@ -51,6 +52,7 @@ fun LessonRoute(
     viewModel: LessonViewModel = viewModel(factory = LessonViewModel.Factory(lessonId)),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    TrackStudyTime()
     Column(Modifier.fillMaxSize()) {
         IconButton(onClick = onBack) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")

@@ -19,6 +19,9 @@ class LessonViewModel(
     private val curriculumRepository: CurriculumRepository =
         ServiceLocator.require().curriculumRepository,
     private val engine: LessonEngine = LessonEngine(),
+    private val onPedagogicalActivity: () -> Unit = {
+        ServiceLocator.require().statsRepository.markPedagogicalActivity()
+    },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoadState<LessonSessionState>>(LoadState.Loading)
@@ -37,6 +40,7 @@ class LessonViewModel(
                 val exercises = curriculumRepository.exercises(lessonId)
                 if (exercises.isEmpty()) error("Aucun exercice pour cette leçon.")
                 curriculumRepository.markLessonOpened(lessonId)
+                onPedagogicalActivity()
                 engine.start(lesson, exercises)
             }.onSuccess {
                 _state.value = LoadState.Ready(it)
@@ -59,6 +63,7 @@ class LessonViewModel(
                     lessonId = current.lesson.id,
                     totalExercises = current.exercises.size,
                 )
+                onPedagogicalActivity()
             }
         }
     }
@@ -72,6 +77,7 @@ class LessonViewModel(
                     lessonId = session.lesson.id,
                     totalExercises = session.exercises.size,
                 )
+                onPedagogicalActivity()
             }
         }
     }

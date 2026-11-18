@@ -21,6 +21,9 @@ import fr.russki.app.data.pack.PackCoordinator
 import fr.russki.app.data.pack.PackRepository
 import fr.russki.app.data.progress.LessonProgressRepository
 import fr.russki.app.data.quiz.QuizRepository
+import fr.russki.app.data.stats.LocalStatsStore
+import fr.russki.app.data.stats.StatsRepository
+import fr.russki.app.data.stats.StudySessionTracker
 import fr.russki.app.domain.quiz.QuizEngine
 import fr.russki.app.domain.srs.SrsScheduler
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +64,18 @@ class AppContainer(
         DialogueRepository(
             progressRepository = lessonProgressRepository,
             audioAvailability = AssetAudioAvailability(appContext),
+        )
+
+    val localStatsStore: LocalStatsStore = LocalStatsStore(appContext)
+
+    val studySessionTracker: StudySessionTracker = StudySessionTracker(localStatsStore)
+
+    val statsRepository: StatsRepository =
+        StatsRepository(
+            curriculumRepository = curriculumRepository,
+            progressRepository = lessonProgressRepository,
+            db = database,
+            localStore = localStatsStore,
         )
 
     val quizRepository: QuizRepository = QuizRepository(

@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.russki.app.data.online.OnlineResult
 import fr.russki.app.data.online.sync.ProgressSyncGateway
+import fr.russki.app.data.stats.StatsRepository
 import fr.russki.app.data.temporary.TemporaryContentSource
 import fr.russki.app.data.temporary.TemporaryPreferencesStore
 import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.model.ProfileSettings
 import fr.russki.app.domain.model.ThemePreference
+import fr.russki.app.domain.stats.StudyTimePolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,7 @@ data class ProfileUi(
 
 class ProfileViewModel(
     private val syncGateway: ProgressSyncGateway = ServiceLocator.require().progressSyncGateway,
+    private val statsRepository: StatsRepository = ServiceLocator.require().statsRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoadState<ProfileUi>>(LoadState.Loading)
@@ -40,6 +43,7 @@ class ProfileViewModel(
             runCatching { TemporaryContentSource.loadProfile() }
                 .onSuccess { settings ->
                     val merged = settings.copy(
+                        dailyGoalMinutes = statsRepository.dailyGoalMinutes(),
                         darkThemePreference = TemporaryPreferencesStore.themePreference.value,
                         offlinePacksOnly = TemporaryPreferencesStore.offlinePacksOnly,
                     )
@@ -61,7 +65,9 @@ class ProfileViewModel(
     }
 
     fun setDailyGoal(minutes: Int) {
-        updateReady { it.copy(settings = it.settings.copy(dailyGoalMinutes = minutes.coerceIn(5, 60))) }
+        val clamped = StudyTimePolicy.clampGoalMinutes(minutes)
+        statsRepository.setDailyGoalMinutes(clamped)
+        updateReady { it.copy(settings = it.settings.copy(dailyGoalMinutes = clamped)) }
     }
 
     fun setSoundEnabled(enabled: Boolean) {

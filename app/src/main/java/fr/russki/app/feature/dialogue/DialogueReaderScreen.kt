@@ -39,6 +39,7 @@ import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.dialogue.DialogueActivityType
 import fr.russki.app.domain.dialogue.DialoguePhase
 import fr.russki.app.domain.model.LoadState
+import fr.russki.app.feature.stats.TrackStudyTime
 
 @Composable
 fun DialogueReaderRoute(
@@ -48,6 +49,7 @@ fun DialogueReaderRoute(
         viewModel(factory = DialogueReaderViewModel.Factory(dialogueId)),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    TrackStudyTime()
     Column(Modifier.fillMaxSize()) {
         IconButton(onClick = onBack) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")

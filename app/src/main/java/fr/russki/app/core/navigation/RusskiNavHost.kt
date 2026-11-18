@@ -35,6 +35,7 @@ import fr.russki.app.feature.profile.ProfileRoute
 import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
 import fr.russki.app.feature.speak.SpeakRoute
+import fr.russki.app.feature.stats.StatsRoute
 import fr.russki.app.feature.vocabulary.GreetingsVocabularyRoute
 
 private object LessonRoutes {
@@ -47,6 +48,7 @@ private object LessonRoutes {
     const val Quiz = "lesson/quiz"
     const val Flashcards = "lesson/flashcards"
     const val Packs = "profile/packs"
+    const val Stats = "profile/stats"
 
     fun interactive(id: String) = "lesson/run/$id"
     fun dialogue(id: String) = "dialogue/run/$id"
@@ -152,6 +154,7 @@ fun RusskiAppShell() {
             composable(RusskiDestination.Profile.route) {
                 ProfileRoute(
                     onOpenPacks = { navController.navigate(LessonRoutes.Packs) },
+                    onOpenStats = { navController.navigate(LessonRoutes.Stats) },
                 )
             }
             composable(
@@ -207,6 +210,9 @@ fun RusskiAppShell() {
             }
             composable(LessonRoutes.Packs) {
                 PacksRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Stats) {
+                StatsRoute(onBack = { navController.popBackStack() })
             }
         }
     }

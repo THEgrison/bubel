@@ -25,6 +25,9 @@ class DialogueReaderViewModel(
     private val repository: DialogueRepository =
         ServiceLocator.require().dialogueRepository,
     private val engine: DialogueEngine = DialogueEngine(),
+    private val onPedagogicalActivity: () -> Unit = {
+        ServiceLocator.require().statsRepository.markPedagogicalActivity()
+    },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoadState<DialogueReaderUi>>(LoadState.Loading)
@@ -41,6 +44,7 @@ class DialogueReaderViewModel(
                 val script = repository.script(dialogueId)
                     ?: error("Dialogue introuvable: $dialogueId")
                 repository.markOpened(dialogueId)
+                onPedagogicalActivity()
                 wrap(engine.start(script))
             }.onSuccess {
                 _state.value = LoadState.Ready(it)
@@ -71,6 +75,7 @@ class DialogueReaderViewModel(
                     dialogueId = dialogueId,
                     totalActivities = next.script.activities.size,
                 )
+                onPedagogicalActivity()
             }
         }
     }
@@ -84,6 +89,7 @@ class DialogueReaderViewModel(
                     dialogueId = dialogueId,
                     totalActivities = session.script.activities.size,
                 )
+                onPedagogicalActivity()
             }
         }
     }
@@ -95,6 +101,7 @@ class DialogueReaderViewModel(
             repository.reset(dialogueId)
             val script = repository.script(dialogueId) ?: return@launch
             repository.markOpened(dialogueId)
+            onPedagogicalActivity()
             _state.value = LoadState.Ready(wrap(engine.restart(script)))
         }
     }

@@ -29,10 +29,12 @@ import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.model.ThemePreference
+import fr.russki.app.domain.stats.StudyTimePolicy
 
 @Composable
 fun ProfileRoute(
     onOpenPacks: () -> Unit = {},
+    onOpenStats: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -44,6 +46,7 @@ fun ProfileRoute(
         onOfflineOnlyChange = viewModel::setOfflinePacksOnly,
         onThemeChange = viewModel::setThemePreference,
         onOpenPacks = onOpenPacks,
+        onOpenStats = onOpenStats,
         onSyncOptInChange = viewModel::setSyncOptIn,
         onSyncPush = viewModel::requestSyncPush,
     )
@@ -58,6 +61,7 @@ fun ProfileScreen(
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit = {},
+    onOpenStats: () -> Unit = {},
     onSyncOptInChange: (Boolean) -> Unit = {},
     onSyncPush: () -> Unit = {},
 ) {
@@ -80,6 +84,7 @@ fun ProfileScreen(
                     onOfflineOnlyChange = onOfflineOnlyChange,
                     onThemeChange = onThemeChange,
                     onOpenPacks = onOpenPacks,
+                    onOpenStats = onOpenStats,
                     onSyncOptInChange = onSyncOptInChange,
                     onSyncPush = onSyncPush,
                 )
@@ -96,6 +101,7 @@ private fun ProfileContent(
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit,
+    onOpenStats: () -> Unit,
     onSyncOptInChange: (Boolean) -> Unit,
     onSyncPush: () -> Unit,
 ) {
@@ -129,13 +135,17 @@ private fun ProfileContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                listOf(5, 10, 15, 20).forEach { minutes ->
+                StudyTimePolicy.goalChoicesMinutes.forEach { minutes ->
                     FilterChip(
                         selected = settings.dailyGoalMinutes == minutes,
                         onClick = { onDailyGoalChange(minutes) },
                         label = { Text("$minutes min") },
                     )
                 }
+            }
+            SpacerH(12)
+            TextButton(onClick = onOpenStats) {
+                Text("Voir les statistiques")
             }
         }
 
