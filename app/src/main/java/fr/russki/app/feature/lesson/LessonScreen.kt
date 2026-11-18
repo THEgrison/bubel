@@ -10,11 +10,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +35,6 @@ import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
-import fr.russki.app.core.ui.components.PedagogicalFeedbackExtras
 import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
@@ -42,6 +43,7 @@ import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.core.ui.components.pedagogicalExtrasFrom
 import fr.russki.app.data.content.AssetAudioAvailability
 import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.exercise.InteractiveExerciseType
@@ -260,9 +262,10 @@ private fun TeachableCard(
         SpacerH(4)
         Text(
             text = buildString {
-                append("Prononciation : ")
+                append("Aide de lecture : ")
                 append(item.transliteration)
                 if (item.stressUnknown) append(" (accent non marqué)")
+                append(" — translittération, pas une transcription phonétique exacte")
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -278,6 +281,14 @@ private fun TeachableCard(
         item.usageFr?.let {
             SpacerH(8)
             Text(it, style = MaterialTheme.typography.bodyMedium)
+        }
+        item.grammarNoteFr?.let {
+            SpacerH(6)
+            Text("Grammaire : $it", style = MaterialTheme.typography.bodySmall)
+        }
+        item.confusionFr?.let {
+            SpacerH(6)
+            Text("Attention : $it", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
         if (item.exampleRu != null) {
             SpacerH(8)
@@ -305,6 +316,7 @@ private fun ExercisePhase(
     val context = LocalContext.current
     val availability = remember { AssetAudioAvailability(context) }
     var selected by remember(exercise.id, session.phase) { mutableStateOf<String?>(null) }
+    var showSheets by remember { mutableStateOf(false) }
     var orderTokens by remember(exercise.id, session.phase) {
         mutableStateOf(
             if (exercise.type == InteractiveExerciseType.WordOrder) {
@@ -328,6 +340,33 @@ private fun ExercisePhase(
         else -> "Exercice"
     }
 
+    if (showSheets && session.teachables.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { showSheets = false },
+            confirmButton = {
+                TextButton(onClick = { showSheets = false }) {
+                    Text("Reprendre l'exercice")
+                }
+            },
+            title = { Text("Fiches de la leçon") },
+            text = {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(
+                        "Consultez sans perdre votre progression.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    session.teachables.forEach { item ->
+                        TeachableCard(item = item, availability = availability)
+                    }
+                }
+            },
+        )
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -335,6 +374,13 @@ private fun ExercisePhase(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         MetaChip("$phaseLabel ${session.exerciseIndex + 1} / $queueSize")
+        if (session.teachables.isNotEmpty() && session.phase != LessonPhase.FinalCheck) {
+            SecondaryButton(
+                text = "Revoir les fiches",
+                onClick = { showSheets = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         SoftPanel {
             Text(exercise.promptFr, style = MaterialTheme.typography.titleMedium)
             SpacerH(10)
@@ -417,16 +463,7 @@ private fun ExercisePhase(
         }
 
         if (grade != null) {
-            val pedagogy = PedagogicalFeedbackExtras(
-                translationFr = grade.translationFr,
-                transliteration = grade.transliteration,
-                stimulusRu = grade.stimulusRu,
-                revealedNote = if (grade.revealedBeforeAnswer) {
-                    "Solution consultée — ne compte pas comme maîtrise"
-                } else {
-                    null
-                },
-            )
+            val pedagogy = pedagogicalExtrasFrom(exercise, grade)
             AnswerFeedbackBanner(
                 state = feedbackState,
                 correctAnswerLabel = grade.acceptedAnswers.first(),
@@ -440,7 +477,11 @@ private fun ExercisePhase(
                     else -> "Incorrect"
                 },
                 audioContent = {
-                    LocalAudioControls(audio = availability.isAvailable(grade.audioAssetPath))
+                    LocalAudioControls(
+                        audio = availability.isAvailable(
+                            grade.audioAssetPath ?: exercise.audioAssetPath,
+                        ),
+                    )
                 },
             )
         } else {
@@ -460,7 +501,10 @@ private fun ExercisePhase(
                         }
                         exercise.transliteration?.let {
                             SpacerH(4)
-                            Text("Prononciation : $it", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                "Aide de lecture : $it — translittération, pas une transcription phonétique exacte",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                         SpacerH(8)
                         LocalAudioControls(audio = availability.isAvailable(exercise.audioAssetPath))
@@ -519,15 +563,17 @@ private fun RecapPhase(
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
+            session.rematchDiagnostic?.let { diag ->
+                SpacerH(8)
+                Text(
+                    "Diagnostic rattrapage :\n$diag",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
         session.teachables.forEach { item ->
-            SoftPanel {
-                Text(item.textRu, style = MaterialTheme.typography.titleLarge)
-                Text(item.translationFr, style = MaterialTheme.typography.bodyLarge)
-                Text("Prononciation : ${item.transliteration}", style = MaterialTheme.typography.bodySmall)
-                SpacerH(6)
-                LocalAudioControls(audio = availability.isAvailable(item.audioAssetPath))
-            }
+            TeachableCard(item = item, availability = availability)
         }
         PrimaryButton(
             text = "Passer le test final",

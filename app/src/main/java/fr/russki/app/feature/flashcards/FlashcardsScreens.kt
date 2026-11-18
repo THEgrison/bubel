@@ -287,12 +287,13 @@ private fun DifficultyPicker(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             SoftPanel {
-                SectionLabel("Choisir un mode")
+                SectionLabel("Choisir un mode pédagogique")
                 Text(
-                    "Facile : reconnaissance RU→FR avec indices. " +
-                        "Normal : rappel FR→RU. " +
-                        "Difficile : écoute ou rappel sans indices. " +
-                        "Toutes : mélange.",
+                    "Ces modes changent la forme de la question, pas l’échéance SRS. " +
+                        "Facile = reconnaître le russe (RU→FR, indices). " +
+                        "Normal = rappeler le russe (FR→RU). " +
+                        "Difficile = écouter puis identifier si l’audio existe, sinon rappel FR→RU. " +
+                        "Toutes = mélange cyclique des trois formes.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -310,8 +311,8 @@ private fun DifficultyPicker(
 }
 
 private fun difficultyLabel(d: FlashcardDifficulty): String = when (d) {
-    FlashcardDifficulty.Easy -> "Facile"
-    FlashcardDifficulty.Normal -> "Normal"
-    FlashcardDifficulty.Hard -> "Difficile"
-    FlashcardDifficulty.All -> "Toutes les difficultés"
+    FlashcardDifficulty.Easy -> "Facile — reconnaître (RU → FR)"
+    FlashcardDifficulty.Normal -> "Normal — rappeler (FR → RU)"
+    FlashcardDifficulty.Hard -> "Difficile — écoute ou rappel"
+    FlashcardDifficulty.All -> "Toutes — modes mélangés"
 }

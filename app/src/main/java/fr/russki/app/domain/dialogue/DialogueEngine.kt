@@ -2,6 +2,7 @@ package fr.russki.app.domain.dialogue
 
 import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.exercise.ExerciseGrade
+import fr.russki.app.domain.pedagogy.PedagogicalFeedbackSupport
 
 enum class DialoguePhase {
     Introduction,
@@ -98,12 +99,22 @@ class DialogueEngine(
         val activity = session.currentActivity ?: error("Aucune activité courante")
         session.grades[activity.id]?.let { return session.copy(currentGrade = it) }
         val correct = matcher.matches(userAnswer, activity.acceptedAnswers)
+        val snap = PedagogicalFeedbackSupport.fromRussian(
+            textRu = activity.stimulusRu,
+            translationFr = activity.acceptedAnswers.firstOrNull { ans ->
+                PedagogicalFeedbackSupport.looksLatin(ans)
+            },
+            explanationFr = activity.explanationFr,
+        )
         val grade = ExerciseGrade(
             exerciseId = activity.id,
             userAnswer = userAnswer,
             isCorrect = correct,
             explanationFr = activity.explanationFr,
             acceptedAnswers = activity.acceptedAnswers,
+            translationFr = snap.translationFr,
+            transliteration = snap.transliteration,
+            stimulusRu = snap.stimulusRu,
         )
         return session.copy(
             grades = session.grades + (activity.id to grade),

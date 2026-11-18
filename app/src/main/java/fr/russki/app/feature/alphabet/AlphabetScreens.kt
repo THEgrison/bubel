@@ -345,6 +345,10 @@ private fun ExerciseCard(
                 correctAnswerLabel = exercise.options.getOrNull(exercise.correctIndex),
                 explanation = exercise.explanationFr,
                 onContinue = onNext,
+                pedagogy = fr.russki.app.core.ui.components.pedagogicalExtrasFromRussian(
+                    textRu = exercise.stimulus,
+                    translationFr = exercise.options.getOrNull(exercise.correctIndex),
+                ),
             )
         }
         SpacerH(8)

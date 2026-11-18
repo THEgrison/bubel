@@ -22,6 +22,10 @@ data class TeachableItem(
     val exampleFr: String? = null,
     val audioAssetPath: String? = null,
     val register: SpeechRegister = SpeechRegister.Neutral,
+    /** Confusion fréquente / piège pour francophones (optionnel). */
+    val confusionFr: String? = null,
+    /** Petite note grammaticale débutant (optionnel). */
+    val grammarNoteFr: String? = null,
 ) {
     init {
         require(id.isNotBlank())

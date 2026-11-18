@@ -257,6 +257,7 @@ private fun ActivityPhase(
                 correctAnswerLabel = grade.acceptedAnswers.first(),
                 explanation = grade.explanationFr,
                 onContinue = onContinue,
+                pedagogy = fr.russki.app.core.ui.components.pedagogicalExtrasFrom(grade),
             )
         }
     }

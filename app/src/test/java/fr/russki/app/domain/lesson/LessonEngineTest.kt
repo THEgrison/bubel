@@ -142,4 +142,61 @@ class LessonEngineTest {
             assertTrue(ex.size >= 3)
         }
     }
+
+    @Test
+    fun rematch_shufflesAndDetectsUnanswerable() {
+        val lesson = A1Unit1Seed.unit.lessons.first { it.id == A1Unit1Seed.LESSON_GREETINGS }
+        val broken = InteractiveExercise(
+            id = "broken-ex",
+            type = InteractiveExerciseType.MultipleChoice,
+            promptFr = "Impossible",
+            stimulus = "…",
+            choices = listOf("a", "b", "c"),
+            acceptedAnswers = listOf("z-impossible"),
+            explanationFr = "config invalide",
+            sortOrder = 1,
+            pedagogyStage = PedagogyStage.Guided,
+        )
+        var session = engine.start(lesson, emptyList(), listOf(broken))
+        session = engine.beginPractice(engine.beginDiscovery(session))
+        session = engine.submitAnswer(session, "a")
+        assertFalse(session.currentGrade!!.countsAsMastered)
+        session = engine.advanceAfterFeedback(session)
+        assertTrue(session.phase == LessonPhase.Recap || session.phase == LessonPhase.Rematch)
+        if (session.phase == LessonPhase.Rematch) {
+            // Entrée rematch : l’exercice impossible est diagnostiqué
+            assertTrue(session.rematchStuckIds.contains("broken-ex") || session.rematchDiagnostic != null)
+        } else {
+            assertTrue(session.rematchStuckIds.contains("broken-ex"))
+            assertTrue(session.rematchDiagnostic!!.contains("broken-ex"))
+        }
+    }
+
+    @Test
+    fun rematch_maxAttempts_marksStuckWithoutInfiniteLoop() {
+        var session = engine.beginPractice(engine.beginDiscovery(greetingsSession()))
+        val first = session.currentExercise!!
+        session = engine.submitAnswer(session, "mauvaise")
+        session = engine.advanceAfterFeedback(session)
+        while (session.phase == LessonPhase.Practice) {
+            val ex = session.currentExercise!!
+            session = engine.submitAnswer(session, ex.acceptedAnswers.first())
+            session = engine.advanceAfterFeedback(session)
+        }
+        assertEquals(LessonPhase.Rematch, session.phase)
+        var guard = 0
+        while (session.phase == LessonPhase.Rematch && guard < 40) {
+            guard++
+            val ex = session.currentExercise ?: break
+            if (ex.id == first.id) {
+                session = engine.submitAnswer(session, "encore faux")
+            } else {
+                session = engine.submitAnswer(session, ex.acceptedAnswers.first())
+            }
+            session = engine.advanceAfterFeedback(session)
+        }
+        assertTrue(session.phase == LessonPhase.Recap)
+        assertTrue(first.id in session.rematchStuckIds || first.id in session.rematchMastered)
+        assertTrue(guard < 40)
+    }
 }

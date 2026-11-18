@@ -4,6 +4,7 @@ import fr.russki.app.domain.exercise.ExerciseGrade
 import fr.russki.app.domain.exercise.ExerciseGrader
 import fr.russki.app.domain.exercise.InteractiveExercise
 import fr.russki.app.domain.exercise.InteractiveExerciseType
+import fr.russki.app.domain.pedagogy.PedagogicalFeedbackSupport
 import fr.russki.app.domain.srs.SrsCardState
 
 /**
@@ -30,7 +31,8 @@ class ReviewEngine(
         check(session.phase == ReviewPhase.Prompt)
         val item = session.current ?: error("Pas d'élément courant")
         session.grades[item.id]?.let { return session.copy(currentGrade = it, phase = ReviewPhase.Feedback) }
-        val grade = grader.grade(item.asExercise(), userAnswer)
+        val exercise = PedagogicalFeedbackSupport.enrichExercise(item.asExercise())
+        val grade = grader.grade(exercise, userAnswer)
         return session.copy(
             grades = session.grades + (item.id to grade),
             currentGrade = grade,

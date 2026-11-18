@@ -11,7 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +43,7 @@ import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.core.ui.components.pedagogicalExtrasFromRussian
 import fr.russki.app.data.content.AssetAudioAvailability
 import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.model.LoadState
@@ -160,6 +160,10 @@ private fun QuestionPane(
     var selectedTokens by remember(question.id) { mutableStateOf(listOf<String>()) }
     var remainingTokens by remember(question.id) { mutableStateOf(question.shuffledTokens) }
     val matcher = remember { AnswerMatcher() }
+    val context = LocalContext.current
+    val resolvedAudio = remember(question.audioAssetPath) {
+        AssetAudioAvailability(context).isAvailable(question.audioAssetPath)
+    }
     val feedbackState = when {
         !revealed || lastCorrect == null -> AnswerFeedbackState.Idle
         else -> feedbackStateFrom(lastCorrect)
@@ -187,10 +191,6 @@ private fun QuestionPane(
                 )
             }
             SpacerH(8)
-            val context = LocalContext.current
-            val resolvedAudio = remember(question.audioAssetPath) {
-                AssetAudioAvailability(context).isAvailable(question.audioAssetPath)
-            }
             LocalAudioControls(audio = resolvedAudio)
         }
 
@@ -301,25 +301,21 @@ private fun QuestionPane(
         }
 
         if (revealed && lastCorrect != null) {
-            SoftPanel {
-                Icon(
-                    Icons.AutoMirrored.Outlined.VolumeOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                SpacerH(6)
-                Text(
-                    "Prononciation : disponible uniquement si un fichier audio natif est embarqué.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
             AnswerFeedbackBanner(
                 state = feedbackState,
                 correctAnswerLabel = expected,
                 explanation = explanation,
                 continueLabel = "Question suivante",
                 onContinue = onNext,
+                pedagogy = pedagogicalExtrasFromRussian(
+                    textRu = question.stimulus.takeIf {
+                        question.type != QuizQuestionType.ListeningComprehension || revealed
+                    },
+                    translationFr = expected,
+                ),
+                audioContent = {
+                    LocalAudioControls(audio = resolvedAudio)
+                },
             )
         }
         SpacerH(12)

@@ -160,6 +160,10 @@ fun ListeningPracticeScreen(
                                 correctAnswerLabel = grade.acceptedAnswers.first(),
                                 explanation = grade.explanationFr,
                                 onContinue = onContinue,
+                                pedagogy = fr.russki.app.core.ui.components.pedagogicalExtrasFromRussian(
+                                    textRu = item.textRuFallback,
+                                    translationFr = grade.acceptedAnswers.firstOrNull(),
+                                ),
                             )
                         } else {
                             PrimaryButton(

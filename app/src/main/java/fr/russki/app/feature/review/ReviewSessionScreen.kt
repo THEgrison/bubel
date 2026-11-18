@@ -160,6 +160,7 @@ private fun PromptOrFeedback(
                 explanation = explanation,
                 customMessage = if (grade.isCorrect) "Correct !" else "À revoir bientôt",
                 onContinue = onContinue,
+                pedagogy = fr.russki.app.core.ui.components.pedagogicalExtrasFrom(grade),
             )
         } else {
             PrimaryButton(

@@ -287,6 +287,7 @@ private fun QuestionPhase(
                 correctAnswerLabel = grade.acceptedAnswers.first(),
                 explanation = grade.explanationFr,
                 onContinue = onContinue,
+                pedagogy = fr.russki.app.core.ui.components.pedagogicalExtrasFrom(exercise, grade),
             )
         } else {
             PrimaryButton(

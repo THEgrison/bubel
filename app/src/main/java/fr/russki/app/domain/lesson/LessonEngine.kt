@@ -1,9 +1,11 @@
 package fr.russki.app.domain.lesson
 
 import fr.russki.app.domain.curriculum.LessonOutline
+import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.exercise.ExerciseGrade
 import fr.russki.app.domain.exercise.ExerciseGrader
 import fr.russki.app.domain.exercise.InteractiveExercise
+import fr.russki.app.domain.exercise.InteractiveExerciseType
 
 /**
  * Déroulement pédagogique :
@@ -39,6 +41,12 @@ data class LessonSessionState(
     /** Ids maîtrisés en rattrapage cette session. */
     val rematchMastered: Set<String>,
     val revealedForCurrent: Boolean,
+    /** Tentatives de rattrapage par id (anti-boucle). */
+    val rematchAttemptCounts: Map<String, Int> = emptyMap(),
+    /** Ids retirés du rattrapage faute de maîtrise après trop d’essais / config invalide. */
+    val rematchStuckIds: Set<String> = emptySet(),
+    /** Diagnostic lisible si une question est bloquée. */
+    val rematchDiagnostic: String? = null,
 ) {
     val currentPracticeQueue: List<InteractiveExercise>
         get() = when (phase) {
@@ -63,7 +71,7 @@ data class LessonSessionState(
     val answeredCount: Int get() = firstGrades.size
 
     val rematchPendingCount: Int
-        get() = rematchQueue.count { it !in rematchMastered }
+        get() = rematchQueue.count { it !in rematchMastered && it !in rematchStuckIds }
 
     val finalCorrectCount: Int
         get() = finalGrades.values.count { it.countsAsMastered }
@@ -75,7 +83,7 @@ data class LessonSessionState(
         get() = initiallyFailedIds.intersect(rematchMastered)
 
     val stillHardIds: Set<String>
-        get() = initiallyFailedIds - rematchMastered
+        get() = (initiallyFailedIds - rematchMastered) + rematchStuckIds
 
     val progressFraction: Float
         get() = when (phase) {
@@ -97,9 +105,18 @@ data class LessonSessionState(
 
 /**
  * Orchestre découverte → pratique → rattrapage → récap → test final → résumé.
+ *
+ * Règles de rattrapage :
+ * - erreur ou révélation → file de rattrapage ;
+ * - révélation ≠ maîtrise ;
+ * - sortie de file uniquement après réponse correcte sans révélation ;
+ * - file remélangée à l’entrée et à chaque cycle ;
+ * - pas de double crédit (première note figée) ;
+ * - après [MAX_REMATCH_ATTEMPTS] échecs ou exercice impossible → stuck + diagnostic, puis récap.
  */
 class LessonEngine(
     private val grader: ExerciseGrader = ExerciseGrader(),
+    private val matcher: AnswerMatcher = AnswerMatcher(),
 ) {
 
     fun start(
@@ -121,9 +138,14 @@ class LessonEngine(
         val practice = sorted.filter { it.pedagogyStage != PedagogyStage.Final }
         val finals = sorted.filter { it.pedagogyStage == PedagogyStage.Final }
             .ifEmpty {
-                // Pas de test final dédié : reprendre 1–2 actifs / guidés distincts
                 practice.takeLast(minOf(2, practice.size))
-                    .mapIndexed { i, ex -> ex.copy(id = "final-${ex.id}", pedagogyStage = PedagogyStage.Final, sortOrder = i) }
+                    .mapIndexed { i, ex ->
+                        ex.copy(
+                            id = "final-${ex.id}",
+                            pedagogyStage = PedagogyStage.Final,
+                            sortOrder = i,
+                        )
+                    }
             }
         return LessonSessionState(
             lesson = lesson,
@@ -149,11 +171,20 @@ class LessonEngine(
 
     fun beginPractice(session: LessonSessionState): LessonSessionState {
         check(session.phase == LessonPhase.Discovery || session.phase == LessonPhase.Introduction)
-        return session.copy(phase = LessonPhase.Practice, exerciseIndex = 0, currentGrade = null, revealedForCurrent = false)
+        return session.copy(
+            phase = LessonPhase.Practice,
+            exerciseIndex = 0,
+            currentGrade = null,
+            revealedForCurrent = false,
+        )
     }
 
     fun revealHint(session: LessonSessionState): LessonSessionState {
-        check(session.phase == LessonPhase.Practice || session.phase == LessonPhase.Rematch || session.phase == LessonPhase.FinalCheck)
+        check(
+            session.phase == LessonPhase.Practice ||
+                session.phase == LessonPhase.Rematch ||
+                session.phase == LessonPhase.FinalCheck,
+        )
         check(session.currentGrade == null)
         return session.copy(revealedForCurrent = true)
     }
@@ -172,7 +203,7 @@ class LessonEngine(
                 }
             }
             LessonPhase.Rematch -> {
-                if (exercise.id in session.rematchMastered) {
+                if (exercise.id in session.rematchMastered || exercise.id in session.rematchStuckIds) {
                     return session.copy(currentGrade = session.rematchGrades[exercise.id])
                 }
             }
@@ -194,30 +225,53 @@ class LessonEngine(
                     session.rematchQueue
                 },
             )
-            LessonPhase.Rematch -> {
-                val mastered = if (grade.countsAsMastered) {
-                    session.rematchMastered + exercise.id
-                } else {
-                    session.rematchMastered
-                }
-                session.copy(
-                    rematchGrades = session.rematchGrades + (exercise.id to grade),
-                    rematchMastered = mastered,
-                    currentGrade = grade,
-                    // Si encore raté / révélé : remettre en fin de file
-                    rematchQueue = if (grade.countsAsMastered) {
-                        session.rematchQueue
-                    } else {
-                        (session.rematchQueue - exercise.id) + exercise.id
-                    },
-                )
-            }
+            LessonPhase.Rematch -> applyRematchGrade(session, exercise, grade)
             LessonPhase.FinalCheck -> session.copy(
                 finalGrades = session.finalGrades + (exercise.id to grade),
                 currentGrade = grade,
             )
             else -> session
         }
+    }
+
+    private fun applyRematchGrade(
+        session: LessonSessionState,
+        exercise: InteractiveExercise,
+        grade: ExerciseGrade,
+    ): LessonSessionState {
+        val attempts = (session.rematchAttemptCounts[exercise.id] ?: 0) + 1
+        val attemptCounts = session.rematchAttemptCounts + (exercise.id to attempts)
+        if (grade.countsAsMastered) {
+            return session.copy(
+                rematchGrades = session.rematchGrades + (exercise.id to grade),
+                rematchMastered = session.rematchMastered + exercise.id,
+                rematchAttemptCounts = attemptCounts,
+                currentGrade = grade,
+                rematchQueue = session.rematchQueue,
+            )
+        }
+        val configIssue = diagnoseUnanswerable(exercise)
+        val stuck = configIssue != null || attempts >= MAX_REMATCH_ATTEMPTS
+        if (stuck) {
+            val reason = configIssue
+                ?: "Trop de tentatives sans maîtrise (${attempts}×) — mise de côté pour cette leçon."
+            return session.copy(
+                rematchGrades = session.rematchGrades + (exercise.id to grade),
+                rematchAttemptCounts = attemptCounts,
+                rematchStuckIds = session.rematchStuckIds + exercise.id,
+                rematchQueue = session.rematchQueue.filter { it != exercise.id },
+                rematchDiagnostic = listOfNotNull(session.rematchDiagnostic, "« ${exercise.id} » : $reason")
+                    .joinToString("\n"),
+                currentGrade = grade,
+            )
+        }
+        // Remettre en fin de file (ordre sera remélangé au prochain cycle)
+        return session.copy(
+            rematchGrades = session.rematchGrades + (exercise.id to grade),
+            rematchAttemptCounts = attemptCounts,
+            currentGrade = grade,
+            rematchQueue = (session.rematchQueue - exercise.id) + exercise.id,
+        )
     }
 
     fun advanceAfterFeedback(session: LessonSessionState): LessonSessionState {
@@ -232,28 +286,15 @@ class LessonEngine(
         return when (session.phase) {
             LessonPhase.Practice -> {
                 if (next >= queue.size) {
-                    if (session.rematchQueue.any { it !in session.rematchMastered }) {
-                        session.copy(
-                            phase = LessonPhase.Rematch,
-                            exerciseIndex = 0,
-                            currentGrade = null,
-                            revealedForCurrent = false,
-                            rematchQueue = session.rematchQueue.filter { it !in session.rematchMastered },
-                        )
-                    } else {
-                        session.copy(
-                            phase = LessonPhase.Recap,
-                            exerciseIndex = 0,
-                            currentGrade = null,
-                            revealedForCurrent = false,
-                        )
-                    }
+                    enterRematchOrRecap(session)
                 } else {
                     session.copy(exerciseIndex = next, currentGrade = null, revealedForCurrent = false)
                 }
             }
             LessonPhase.Rematch -> {
-                val pending = session.rematchQueue.filter { it !in session.rematchMastered }
+                val pending = session.rematchQueue.filter {
+                    it !in session.rematchMastered && it !in session.rematchStuckIds
+                }
                 if (pending.isEmpty()) {
                     session.copy(
                         phase = LessonPhase.Recap,
@@ -263,14 +304,10 @@ class LessonEngine(
                         rematchQueue = emptyList(),
                     )
                 } else {
-                    // Avancer dans la file actuelle ; si fin, recommencer sur les restants
-                    val rematchList = pending.mapNotNull { id ->
-                        session.practiceExercises.find { it.id == id }
-                    }
                     val nextIdx = session.exerciseIndex + 1
-                    if (nextIdx >= rematchList.size) {
+                    if (nextIdx >= pending.size) {
                         session.copy(
-                            rematchQueue = pending,
+                            rematchQueue = pending.shuffled(),
                             exerciseIndex = 0,
                             currentGrade = null,
                             revealedForCurrent = false,
@@ -301,8 +338,60 @@ class LessonEngine(
         }
     }
 
+    private fun enterRematchOrRecap(session: LessonSessionState): LessonSessionState {
+        val pending = session.rematchQueue.filter {
+            it !in session.rematchMastered && it !in session.rematchStuckIds
+        }
+        if (pending.isEmpty()) {
+            return session.copy(
+                phase = LessonPhase.Recap,
+                exerciseIndex = 0,
+                currentGrade = null,
+                revealedForCurrent = false,
+            )
+        }
+        // Marquer d’emblée les exercices impossibles
+        var stuck = session.rematchStuckIds
+        var diagnostic = session.rematchDiagnostic
+        val answerable = mutableListOf<String>()
+        for (id in pending) {
+            val ex = session.practiceExercises.find { it.id == id } ?: continue
+            val issue = diagnoseUnanswerable(ex)
+            if (issue != null) {
+                stuck = stuck + id
+                diagnostic = listOfNotNull(diagnostic, "« $id » : $issue").joinToString("\n")
+            } else {
+                answerable += id
+            }
+        }
+        if (answerable.isEmpty()) {
+            return session.copy(
+                phase = LessonPhase.Recap,
+                exerciseIndex = 0,
+                currentGrade = null,
+                revealedForCurrent = false,
+                rematchQueue = emptyList(),
+                rematchStuckIds = stuck,
+                rematchDiagnostic = diagnostic,
+            )
+        }
+        return session.copy(
+            phase = LessonPhase.Rematch,
+            exerciseIndex = 0,
+            currentGrade = null,
+            revealedForCurrent = false,
+            rematchQueue = answerable.shuffled(),
+            rematchStuckIds = stuck,
+            rematchDiagnostic = diagnostic,
+        )
+    }
+
     fun beginFinalCheck(session: LessonSessionState): LessonSessionState {
         check(session.phase == LessonPhase.Recap)
+        // Interdit tant qu’il reste du rattrapage actif
+        check(session.rematchPendingCount == 0) {
+            "Le rattrapage doit être terminé avant le test final."
+        }
         return if (session.finalExercises.isEmpty()) {
             session.copy(phase = LessonPhase.Summary)
         } else {
@@ -317,11 +406,66 @@ class LessonEngine(
 
     fun skipFinalToSummary(session: LessonSessionState): LessonSessionState {
         check(session.phase == LessonPhase.Recap || session.phase == LessonPhase.FinalCheck)
+        check(session.rematchPendingCount == 0)
         return session.copy(phase = LessonPhase.Summary, currentGrade = null)
     }
 
     fun complete(session: LessonSessionState): LessonSessionState {
         check(session.phase == LessonPhase.Summary || session.phase == LessonPhase.Completed)
         return session.copy(phase = LessonPhase.Completed)
+    }
+
+    /**
+     * Détecte un exercice dont aucune réponse correcte n’est atteignable via les choix
+     * (ou sans réponse acceptée utilisable).
+     */
+    fun diagnoseUnanswerable(exercise: InteractiveExercise): String? {
+        if (exercise.acceptedAnswers.none { it.isNotBlank() }) {
+            return "Aucune réponse acceptée configurée."
+        }
+        return when (exercise.type) {
+            InteractiveExerciseType.WordOrder -> {
+                val expected = exercise.acceptedAnswers.map {
+                    it.trim().trimEnd('.', '!', '?').lowercase()
+                }
+                val fromChoices = exercise.choices.joinToString(" ").trim().lowercase()
+                // Au moins une variante doit pouvoir être formée des tokens fournis
+                val tokenSet = exercise.choices.map { it.trimEnd('?', '.', '!') }.toSet()
+                val canForm = expected.any { exp ->
+                    val parts = exp.split(Regex("\\s+")).filter { it.isNotBlank() }
+                    parts.all { part ->
+                        tokenSet.any { tok ->
+                            tok.trimEnd('?', '.', '!').equals(part, ignoreCase = true) ||
+                                tok.equals(part, ignoreCase = true)
+                        }
+                    }
+                }
+                if (!canForm && fromChoices.isNotBlank()) {
+                    // Les tokens peuvent encore former une réponse après shuffle — OK si non vide
+                    null
+                } else {
+                    null
+                }
+            }
+            InteractiveExerciseType.MultipleChoice,
+            InteractiveExerciseType.MatchTranslation,
+            InteractiveExerciseType.FillBlank,
+            InteractiveExerciseType.LetterRecognition,
+            -> {
+                if (exercise.choices.isEmpty()) return null
+                val anyMatch = exercise.choices.any { choice ->
+                    matcher.matches(choice, exercise.acceptedAnswers)
+                }
+                if (!anyMatch) {
+                    "Aucun choix ne correspond aux réponses acceptées (exercice mal configuré)."
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
+    companion object {
+        const val MAX_REMATCH_ATTEMPTS: Int = 6
     }
 }

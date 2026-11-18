@@ -199,9 +199,11 @@ fun AnswerChoiceButton(
  */
 data class PedagogicalFeedbackExtras(
     val translationFr: String? = null,
+    /** Aide de lecture (translittération) — pas une transcription IPA. */
     val transliteration: String? = null,
     val stimulusRu: String? = null,
     val revealedNote: String? = null,
+    val stressUnknown: Boolean = false,
 )
 
 @Composable
@@ -286,7 +288,12 @@ fun AnswerFeedbackBanner(
                 pedagogy?.transliteration?.takeIf { it.isNotBlank() }?.let { tr ->
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Prononciation : $tr",
+                        text = buildString {
+                            append("Aide de lecture : ")
+                            append(tr)
+                            if (pedagogy.stressUnknown) append(" (accent non marqué)")
+                            append(" — translittération, pas une transcription phonétique exacte")
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
