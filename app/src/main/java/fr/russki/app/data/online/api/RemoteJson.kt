@@ -2,6 +2,7 @@ package fr.russki.app.data.online.api
 
 import fr.russki.app.data.online.OnlineError
 import fr.russki.app.data.online.OnlineResult
+import fr.russki.app.data.online.download.PathSafety
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -169,9 +170,15 @@ object RemoteJson {
         requireSha(sha)
         val size = o.getLong("byteSize")
         require(size > 0L) { "byteSize doit être > 0" }
+        val id = o.reqString("id")
+        val relativePath = o.reqString("relativePath")
+        require(PathSafety.isSafeAssetId(id)) { "id d'asset non fiable: $id" }
+        require(PathSafety.isSafeRelativePath(relativePath)) {
+            "relativePath non fiable: $relativePath"
+        }
         return RemotePackAsset(
-            id = o.reqString("id"),
-            relativePath = o.reqString("relativePath"),
+            id = id,
+            relativePath = relativePath,
             byteSize = size,
             sha256 = sha.lowercase(),
             downloadPath = o.reqString("downloadPath"),

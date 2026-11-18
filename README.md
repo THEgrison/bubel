@@ -13,6 +13,8 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 
 Sans `RUSSKI_API_BASE_URL`, le client utilise `DisabledOnlineApi` : **aucun backend fictif n’est présenté comme opérationnel**.
 
+Rapport d’audit pré-v1 (tests exécutés, APK, limites) : [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md).
+
 ## Prérequis
 
 - JDK 17+

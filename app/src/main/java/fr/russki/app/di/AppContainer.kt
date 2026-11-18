@@ -85,11 +85,7 @@ class AppContainer(
         remoteCatalog = remoteCatalogRepository,
         downloadEngine = packDownloadEngine,
         preferOfflineOnly = {
-            // Lecture best-effort : si le profil n’est pas encore chargé, false.
-            runCatching {
-                // Préférence session via TemporaryContentSource / profil — défaut false.
-                false
-            }.getOrDefault(false)
+            fr.russki.app.data.temporary.TemporaryPreferencesStore.offlinePacksOnly
         },
     )
 

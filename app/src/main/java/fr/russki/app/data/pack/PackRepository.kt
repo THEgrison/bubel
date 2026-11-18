@@ -93,8 +93,8 @@ class PackRepository(
         if (!assetPackExists(packId)) {
             return@withContext Result.failure(
                 IllegalStateException(
-                    "Pack indisponible hors ligne. Connectez-vous pour le télécharger " +
-                        "(aucun téléchargement distant dans cette version).",
+                    "Pack indisponible dans les assets locaux. " +
+                        "Utilisez le catalogue distant (si API configurée) pour le télécharger.",
                 ),
             )
         }

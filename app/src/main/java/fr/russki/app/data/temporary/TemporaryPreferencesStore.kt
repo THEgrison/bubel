@@ -17,7 +17,15 @@ object TemporaryPreferencesStore {
     private val _themePreference = MutableStateFlow(ThemePreference.System)
     val themePreference: StateFlow<ThemePreference> = _themePreference.asStateFlow()
 
+    @Volatile
+    var offlinePacksOnly: Boolean = false
+        private set
+
     fun setThemePreference(preference: ThemePreference) {
         _themePreference.update { preference }
+    }
+
+    fun setOfflinePacksOnly(enabled: Boolean) {
+        offlinePacksOnly = enabled
     }
 }

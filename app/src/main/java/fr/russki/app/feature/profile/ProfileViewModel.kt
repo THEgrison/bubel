@@ -41,6 +41,7 @@ class ProfileViewModel(
                 .onSuccess { settings ->
                     val merged = settings.copy(
                         darkThemePreference = TemporaryPreferencesStore.themePreference.value,
+                        offlinePacksOnly = TemporaryPreferencesStore.offlinePacksOnly,
                     )
                     _state.value = LoadState.Ready(
                         ProfileUi(
@@ -68,6 +69,7 @@ class ProfileViewModel(
     }
 
     fun setOfflinePacksOnly(enabled: Boolean) {
+        TemporaryPreferencesStore.setOfflinePacksOnly(enabled)
         updateReady { it.copy(settings = it.settings.copy(offlinePacksOnly = enabled)) }
     }
 

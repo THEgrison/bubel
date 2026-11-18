@@ -67,6 +67,17 @@ class PackDownloadEngine(
 
         try {
             for (asset in manifest.assets) {
+                if (!PathSafety.isSafeAssetId(asset.id) ||
+                    !PathSafety.isSafeRelativePath(asset.relativePath)
+                ) {
+                    val err = OnlineError(
+                        OnlineError.INVALID_PAYLOAD,
+                        "Chemin d'asset non fiable: ${asset.id} / ${asset.relativePath}",
+                    )
+                    markState(packId, InstalledPackState.FAILED, downloadedTotal, err.message)
+                    stagingRoot.deleteRecursively()
+                    return@withContext OnlineResult.Err(err)
+                }
                 val partial = File(stagingRoot, "${asset.id}.partial")
                 val download = limiter.withPermit {
                     api.downloadAssetResumable(
@@ -117,7 +128,16 @@ class PackDownloadEngine(
 
             for (asset in manifest.assets) {
                 val partial = File(stagingRoot, "${asset.id}.partial")
-                val target = File(tmpInstall, asset.relativePath)
+                val target = PathSafety.resolveUnder(tmpInstall, asset.relativePath)
+                if (target == null) {
+                    tmpInstall.deleteRecursively()
+                    val err = OnlineError(
+                        OnlineError.INVALID_PAYLOAD,
+                        "Chemin d'install refusé: ${asset.relativePath}",
+                    )
+                    markState(packId, InstalledPackState.FAILED, downloadedTotal, err.message)
+                    return@withContext OnlineResult.Err(err)
+                }
                 target.parentFile?.mkdirs()
                 if (!partial.renameTo(target)) {
                     partial.copyTo(target, overwrite = true)
