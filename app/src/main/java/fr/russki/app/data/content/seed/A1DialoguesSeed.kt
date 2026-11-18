@@ -10,7 +10,9 @@ import fr.russki.app.domain.dialogue.DialogueSpeaker
 
 /**
  * Trois dialogues A1 embarqués — contenu fixe, hors ligne.
- * Aucun chemin audio n'est présenté comme disponible (tous `null`).
+ * `audioAssetPath` des lignes reste null : la résolution passe par
+ * [fr.russki.app.data.audio.PedagogicalAudioCatalog] (réutilisation exacte
+ * de slugs vocabulaire quand un fichier licencié existe).
  */
 object A1DialoguesSeed {
 

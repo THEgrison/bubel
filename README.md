@@ -11,7 +11,7 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 - **Parler** : 3 dialogues A1 scriptés (texte + activités), audio optionnel non inventé
 - **Statistiques** (Profil) : avancement curriculum, dialogues séparés, objectif 5/10/15 min, séries locales
 - **Test de placement** (Apprendre / Profil) : estimation indicative hors ligne, sans modifier la progression des leçons
-- **Audio local** (Parler) : lecteur + mode écoute (repli texte) + oral micro optionnel — **aucun fichier audio embarqué** pour l’instant ([docs/AUDIO.md](docs/AUDIO.md))
+- **Audio local** (Parler) : lecteur + mode écoute (repli texte) + oral micro optionnel — **9 enregistrements licenciés** embarqués (salutations) ; le reste reste « Audio indisponible » ([docs/AUDIO.md](docs/AUDIO.md))
 - **Révision SRS** (Réviser) : file limitée aux notions déjà étudiées, session courte avec correction ([docs/SRS.md](docs/SRS.md))
 - Contenu v1 + Room : alphabet, quiz, flashcards/SRS, packs
 - Plan plateforme : [docs/MIGRATION_PLAN_PLATEFORME.md](docs/MIGRATION_PLAN_PLATEFORME.md)

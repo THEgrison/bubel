@@ -56,8 +56,15 @@ object PedagogicalAudioCatalog {
         "vocab-greet-015" to path("ochen-priyatno"),
     )
 
+    /**
+     * Chemins attendus pour les répliques.
+     * Quand une réplique est **exactement** un mot/expression déjà enregistré,
+     * on réutilise le slug vocabulaire (pas de faux audio partiel).
+     * Les phrases plus longues restent sur des slugs dédiés tant qu'aucun fichier
+     * licencié complet n'est embarqué.
+     */
     private val dialogueLinePaths: Map<String, String> = mapOf(
-        "meet-l1" to path("dialogue-meet-l1"),
+        "meet-l1" to path("zdravstvuyte"), // « Здравствуйте! »
         "meet-l2" to path("dialogue-meet-l2"),
         "meet-l3" to path("dialogue-meet-l3"),
         "meet-l4" to path("dialogue-meet-l4"),
@@ -68,7 +75,7 @@ object PedagogicalAudioCatalog {
         "drink-l3" to path("dialogue-drink-l3"),
         "drink-l4" to path("dialogue-drink-l4"),
         "drink-l5" to path("dialogue-drink-l5"),
-        "drink-l6" to path("dialogue-drink-l6"),
+        "drink-l6" to path("spasibo"), // « Спасибо! »
         "ask-l1" to path("dialogue-ask-l1"),
         "ask-l2" to path("dialogue-ask-l2"),
         "ask-l3" to path("dialogue-ask-l3"),

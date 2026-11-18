@@ -2,69 +2,82 @@
 
 ## État actuel
 
-**Aucun fichier audio redistribuable n’est embarqué dans ce dépôt.**
+Des enregistrements russes **licenciés** sont embarqués pour une partie des
+salutations et formules A1. L’UI n’affiche « Écouter » que si
+`AssetAudioAvailability` trouve le fichier réel. Sinon : « Audio indisponible »
+et mode texte.
 
-L’application expose l’infrastructure de lecture et d’entraînement oral, mais
-refuse d’afficher une lecture tant que le fichier n’existe pas réellement
-(`AssetAudioAvailability` / `AudioResolver`). L’UI affiche alors
-« Audio indisponible » et bascule en mode texte.
-
-Le pack `assets/packs/audio-demo-v1/` ne contient que des manifests / readme
-placeholder — **pas** d’enregistrements.
+Convention : `assets/content/audio/ru/<slug>.ogg` (Ogg Vorbis).
 
 ## Architecture
 
 | Composant | Rôle |
 |-----------|------|
-| `PedagogicalAudioCatalog` | Chemins *attendus* pour salutations, présentations, 3 dialogues A1 |
-| `AssetAudioAvailability` | Vérifie la présence réelle (assets ou `filesDir`) |
+| `PedagogicalAudioCatalog` | Chemins *attendus* (vocabulaire, dialogues, phrases) |
+| `AssetAudioAvailability` | Présence réelle (assets ou `filesDir`) |
 | `LocalAudioPlayer` | Lecture / pause / reprise / répétition / libération |
-| `LocalVoiceRecorder` | Enregistrement micro optionnel dans le **cache privé** |
-| Mode écoute | Exercices QCM ; audio si présent, sinon stimulus texte |
-| Entraînement oral | Répétition + réécoute locale ; **aucune** notation / ASR / envoi |
-
-Convention de chemins : `assets/content/audio/ru/<slug>.ogg`
-
-## Comment ajouter un fichier licencié
-
-1. Vérifier la licence (CC0, CC BY, ou licence propriétaire autorisant la
-   redistribution dans l’APK). Conserver la preuve (URL, auteur, date).
-2. Convertir en Ogg Vorbis (recommandé) ou un format lu par `MediaPlayer`.
-3. Placer le fichier sous `app/src/main/assets/content/audio/ru/` avec le
-   **slug exact** du catalogue (voir table ci-dessous).
-4. Mettre à jour la section **Inventaire** de ce document (source, licence,
-   attribution).
-5. Lancer l’app : le bouton « Écouter » n’apparaît que si le fichier est détecté.
-6. Ne jamais committer un audio dont la licence n’est pas claire.
+| `LocalVoiceRecorder` | Micro optionnel (cache privé, non noté) |
 
 ## Inventaire des fichiers embarqués
 
-| Fichier | Contenu | Source | Licence | Attribution |
-|---------|---------|--------|---------|-------------|
-| — | — | — | — | **Aucun fichier audio n’est intégré à ce jour.** |
+| Fichier | Texte | Source | Licence | Attribution |
+|---------|-------|--------|---------|-------------|
+| `privet.ogg` | привет | Shtooka `rus-balm-voc-sakhno` | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/us/) | Sergueï Sakhno, Nicolas Vion |
+| `zdravstvuyte.ogg` | здравствуйте! | Shtooka `rus-balm-voc` | [CC BY 2.0 FR](https://creativecommons.org/licenses/by/2.0/fr/) | Gulnara Streit, Eric Streit, Nicolas Vion |
+| `dobroe-utro.ogg` | доброе утро | [Commons:Ru-Доброе утро.ogg](https://commons.wikimedia.org/wiki/File:Ru-%D0%94%D0%BE%D0%B1%D1%80%D0%BE%D0%B5_%D1%83%D1%82%D1%80%D0%BE.ogg) | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | Захаровсергеевич (Wikimedia Commons) |
+| `dobryy-vecher.ogg` | добрый вечер | [Commons:Ru-добрый вечер.ogg](https://commons.wikimedia.org/wiki/File:Ru-%D0%B4%D0%BE%D0%B1%D1%80%D1%8B%D0%B9_%D0%B2%D0%B5%D1%87%D0%B5%D1%80.ogg) | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | Захаровсергеевич (Wikimedia Commons) |
+| `poka.ogg` | пока | Shtooka `rus-balm-voc-sakhno` | CC BY 3.0 | Sergueï Sakhno, Nicolas Vion |
+| `do-svidaniya.ogg` | до свидания | Shtooka `rus-balm-voc-sakhno` | CC BY 3.0 | Sergueï Sakhno, Nicolas Vion |
+| `spasibo.ogg` | спасибо | Shtooka `rus-balm-voc-sakhno` | CC BY 3.0 | Sergueï Sakhno, Nicolas Vion |
+| `pozhaluysta.ogg` | пожалуйста | Shtooka `rus-balm-voc-sakhno` | CC BY 3.0 | Sergueï Sakhno, Nicolas Vion |
+| `khorosho.ogg` | хорошо | Shtooka `rus-balm-voc-sakhno` | CC BY 3.0 | Sergueï Sakhno, Nicolas Vion |
 
-## Chemins attendus (catalogue)
+Packs Shtooka d’origine (téléchargement) :
 
-Exemples (liste complète via `PedagogicalAudioCatalog.allExpectedPaths()`) :
+- https://yojik.eu/audiocollections/archives/rus-balm-voc-sakhno_flac.tar.xz
+- https://yojik.eu/audiocollections/archives/rus-balm-voc_flac.tar.xz  
+  README licences : `detailled/rus-balm-voc(-sakhno)/readme.txt` sur yojik.eu
 
-- `content/audio/ru/privet.ogg` ← `vocab-greet-001`
-- `content/audio/ru/zdravstvuyte.ogg` ← `vocab-greet-002`
-- `content/audio/ru/dialogue-meet-l1.ogg` ← réplique `meet-l1`
-- `content/audio/ru/menya-zovut.ogg` ← présentation
+Les fichiers Commons ont été convertis en Ogg Vorbis (ffmpeg) pour la
+convention du projet ; licence **CC BY-SA** → redistribution OK avec
+attribution + ShareAlike sur les dérivés.
+
+## Références couvertes
+
+- Vocabulaire salutations : 001, 002, 003, 005, 007, 008, 009, 010, 013
+- Dialogues (réutilisation **exacte** uniquement) :
+  - `meet-l1` → `zdravstvuyte.ogg`
+  - `drink-l6` → `spasibo.ogg`
+- Mode écoute / oral : disponibles si la clé catalogue pointe vers un slug présent
+
+## Références encore sans fichier
+
+Slugs catalogue sans `.ogg` embarqué (l’UI reste en « Audio indisponible ») :
+
+- `dobryy-den`, `spokoynoy-nochi`, `izvinite`, `kak-dela`, `menya-zovut`,
+  `ochen-priyatno`, `kak-vas-zovut`, `ya-iz-frantsii`
+- Répliques de dialogue longues (`dialogue-meet-l2`…, `dialogue-drink-l1`…,
+  `dialogue-ask-*`) — aucun enregistrement licencié **de la phrase entière**
+  n’a été trouvé/intégré
+- Alphabet (33 lettres) : toujours `audioAssetPath = null`
+
+Ne pas inventer d’audio partiel ni concaténer des mots pour « couvrir » une phrase.
+
+## Comment ajouter un fichier licencié
+
+1. Licence claire (CC0, CC BY, CC BY-SA, ou équivalent redistribuable dans l’APK).
+2. Convertir en Ogg Vorbis ; placer sous `app/src/main/assets/content/audio/ru/<slug>.ogg`.
+3. Mettre à jour **cette** table (source, licence, attribution).
+4. Brancher `audioAssetPath` / catalogue si besoin.
+5. Vérifier que « Écouter » apparaît uniquement pour ce fichier.
 
 ## Enregistrements utilisateur
 
-- Permission `RECORD_AUDIO` demandée **au moment** d’enregistrer.
-- Fichiers dans `cacheDir/oral_recordings/` uniquement.
-- Supprimés en quittant l’écran, via « Effacer le cache oral », ou
-  `LocalVoiceRecorder.clearSession()`.
-- Jamais synchronisés, jamais notés automatiquement.
+- Permission `RECORD_AUDIO` à la demande ; cache `oral_recordings/` ; jamais sync/noté.
 
-## Tests appareil réel
+## Tests
 
-Les tests unitaires Robolectric couvrent absence de fichier, libération du
-lecteur, erreurs d’enregistrement simulées et nettoyage du cache.
-
-La permission micro réelle, le comportement MediaRecorder hardware et la
-qualité audio doivent être validés sur **appareil Android physique** (ou
-émulateur avec micro virtuel).
+- Unitaires : présence des assets déclarés disponibles, absence des manquants,
+  non-régression progression.
+- Appareil réel : qualité sonore, MediaPlayer, pause/reprise, pas de lectures
+  concurrentes, micro.

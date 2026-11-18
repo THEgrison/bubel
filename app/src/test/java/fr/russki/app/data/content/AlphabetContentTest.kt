@@ -89,7 +89,10 @@ class AlphabetContentTest {
             assertTrue(entry.translationFr.isNotBlank())
             assertTrue(entry.textRu.isNotBlank())
             assertTrue(entry.category.isNotBlank())
-            assertNull(entry.audioAssetPath)
+            entry.audioAssetPath?.let { path ->
+                assertTrue(path.startsWith("content/audio/ru/"))
+                assertTrue(path.endsWith(".ogg"))
+            }
         }
         val ids = module.entries.map { it.id }
         assertEquals(ids.toSet().size, ids.size)

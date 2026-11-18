@@ -6,7 +6,9 @@ import fr.russki.app.domain.content.VocabularyModule
 
 /**
  * Module vocabulaire : salutations et expressions courantes.
- * Traductions vérifiées pour un usage débutant ; audio absent pour l'instant (null).
+ * Traductions vérifiées pour un usage débutant.
+ * `audioAssetPath` n'est rempli que si le fichier Ogg licencié est réellement embarqué
+ * (voir docs/AUDIO.md) — jamais de chemin fantôme.
  */
 internal object GreetingsVocabularySeed {
 
@@ -27,7 +29,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Привет! Как дела?",
                 exampleFr = "Salut ! Ça va ?",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/privet.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-002",
@@ -37,7 +39,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Здравствуйте!",
                 exampleFr = "Bonjour !",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/zdravstvuyte.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-003",
@@ -47,7 +49,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Доброе утро!",
                 exampleFr = "Bonjour ! (le matin)",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/dobroe-utro.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-004",
@@ -67,7 +69,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Добрый вечер!",
                 exampleFr = "Bonsoir !",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/dobryy-vecher.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-006",
@@ -87,7 +89,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Пока!",
                 exampleFr = "Salut ! (en partant)",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/poka.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-008",
@@ -97,7 +99,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "До свидания!",
                 exampleFr = "Au revoir !",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/do-svidaniya.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-009",
@@ -107,7 +109,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Спасибо большое!",
                 exampleFr = "Merci beaucoup !",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/spasibo.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-010",
@@ -117,7 +119,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Пожалуйста.",
                 exampleFr = "Je vous en prie. / S'il vous plaît.",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/pozhaluysta.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-011",
@@ -147,7 +149,7 @@ internal object GreetingsVocabularySeed {
                 level = ContentLevel.Beginner,
                 exampleRu = "Хорошо, спасибо.",
                 exampleFr = "Bien, merci.",
-                audioAssetPath = null,
+                audioAssetPath = "content/audio/ru/khorosho.ogg",
             ),
             VocabularyEntry(
                 id = "vocab-greet-014",

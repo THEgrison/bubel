@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 class PedagogicalAudioCatalogTest {
 
     @Test
-    fun catalog_coversDialoguesAndGreetings_withoutClaimingAvailability() {
+    fun catalog_coversDialoguesAndGreetings_andOnlyClaimsPresentFiles() {
         val availability = AssetAudioAvailability(
             ApplicationProvider.getApplicationContext(),
         )
@@ -25,15 +25,23 @@ class PedagogicalAudioCatalogTest {
 
         A1DialoguesSeed.all.forEach { script ->
             script.lines.forEach { line ->
-                val expected = PedagogicalAudioCatalog.forDialogueLine(line.id)
-                assertNotNull("Catalogue manquant pour ${line.id}", expected)
-                // Aucun fichier embarqué → indisponible
-                assertNull(resolver.resolveDialogueLine(line.id, line.audioAssetPath))
+                assertNotNull(
+                    "Catalogue manquant pour ${line.id}",
+                    PedagogicalAudioCatalog.forDialogueLine(line.id),
+                )
             }
         }
 
+        // Réutilisations exactes embarquées
+        assertNotNull(resolver.resolveDialogueLine("meet-l1", null))
+        assertNotNull(resolver.resolveDialogueLine("drink-l6", null))
+        // Phrase longue encore absente
+        assertNull(resolver.resolveDialogueLine("meet-l2", null))
+
         assertNotNull(PedagogicalAudioCatalog.forVocabulary("vocab-greet-002"))
-        assertNull(resolver.resolveVocabulary("vocab-greet-002"))
+        assertNotNull(resolver.resolveVocabulary("vocab-greet-002"))
+        assertNull(resolver.resolveVocabulary("vocab-greet-014")) // menya-zovut absent
+
         assertTrue(PedagogicalAudioCatalog.allExpectedPaths().isNotEmpty())
         assertFalse(
             PedagogicalAudioCatalog.allExpectedPaths().any {
