@@ -24,8 +24,10 @@ import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
+import fr.russki.app.data.curriculum.PathWithProgress
 import fr.russki.app.data.curriculum.UnitWithProgress
 import fr.russki.app.domain.curriculum.LessonOutline
 import fr.russki.app.domain.curriculum.LessonProgressSummary
@@ -46,13 +48,13 @@ fun LearnRoute(
 
 @Composable
 fun LearnScreen(
-    state: LoadState<UnitWithProgress>,
+    state: LoadState<PathWithProgress>,
     onRetry: () -> Unit,
     onOpenLesson: (String) -> Unit,
 ) {
     ScreenScaffold(
         title = "Apprendre",
-        subtitle = "Parcours A1 — Premiers pas (hors ligne).",
+        subtitle = "Parcours débutant A1 (hors ligne) — couverture progressive, non certifiante.",
     ) {
         when (state) {
             LoadState.Loading -> LoadingState()
@@ -67,26 +69,23 @@ fun LearnScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     SoftPanel {
-                        MetaChip(path.unit.cefrLevel.name)
+                        MetaChip(path.cefrLevel.name)
                         SpacerH(8)
-                        Text(path.unit.titleFr, style = MaterialTheme.typography.headlineSmall)
-                        SpacerH(6)
                         Text(
-                            path.unit.descriptionFr,
+                            text = "${path.units.size} unités · contenu embarqué",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    path.unit.lessons.forEach { lesson ->
-                        val progress = path.lessonProgress[lesson.id]
-                        LessonCard(
-                            lesson = lesson,
-                            progress = progress,
-                            onClick = { onOpenLesson(lesson.id) },
+                    path.units.forEach { unitBlock ->
+                        UnitSection(
+                            block = unitBlock,
+                            onOpenLesson = onOpenLesson,
                         )
                     }
                     Text(
-                        text = "Les niveaux A2–B2 seront ajoutés après le parcours A1.",
+                        text = "Ce parcours ne constitue pas un niveau A1 CECRL complet. " +
+                            "Les dialogues sont dans l’onglet Parler.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                     )
@@ -94,6 +93,32 @@ fun LearnScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun UnitSection(
+    block: UnitWithProgress,
+    onOpenLesson: (String) -> Unit,
+) {
+    SoftPanel {
+        SectionLabel("Unité ${block.unit.sortOrder}")
+        SpacerH(6)
+        Text(block.unit.titleFr, style = MaterialTheme.typography.titleLarge)
+        SpacerH(6)
+        Text(
+            block.unit.descriptionFr,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    block.unit.lessons.forEach { lesson ->
+        val progress = block.lessonProgress[lesson.id]
+        LessonCard(
+            lesson = lesson,
+            progress = progress,
+            onClick = { onOpenLesson(lesson.id) },
+        )
     }
 }
 
@@ -123,7 +148,7 @@ private fun LessonCard(
             }
         }
         SpacerH(8)
-        Text(lesson.titleFr, style = MaterialTheme.typography.titleLarge)
+        Text(lesson.titleFr, style = MaterialTheme.typography.titleMedium)
         SpacerH(6)
         Text(
             lesson.objectiveFr,

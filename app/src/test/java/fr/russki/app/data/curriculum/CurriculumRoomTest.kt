@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import fr.russki.app.data.content.ContentMetaKeys
 import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.CurriculumVersions
+import fr.russki.app.data.content.seed.A1CurriculumSeed
 import fr.russki.app.data.content.seed.A1Unit1Seed
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.local.migration.RusskiMigrations
@@ -49,19 +50,19 @@ class CurriculumRoomTest {
     fun seed_writesA1CurriculumIdempotently() = runBlocking {
         val seed = ContentSeedInitializer(db)
         val first = seed.ensureSeeded()
-        assertEquals(1, first.curriculumUnitCount)
-        assertEquals(3, first.curriculumLessonCount)
-        assertEquals(9, first.curriculumExerciseCount)
+        assertEquals(9, first.curriculumUnitCount)
+        assertEquals(19, first.curriculumLessonCount)
+        assertEquals(57, first.curriculumExerciseCount)
         assertEquals(
-            CurriculumVersions.A1_UNIT1,
+            CurriculumVersions.A1_PATH,
             db.contentMetaDao().get(ContentMetaKeys.CURRICULUM_VERSION),
         )
 
         val second = seed.ensureSeeded()
         assertTrue(second.alreadySeeded)
-        assertEquals(1, db.curriculumUnitDao().count())
-        assertEquals(3, db.curriculumLessonDao().count())
-        assertEquals(9, db.curriculumExerciseDao().count())
+        assertEquals(9, db.curriculumUnitDao().count())
+        assertEquals(19, db.curriculumLessonDao().count())
+        assertEquals(57, db.curriculumExerciseDao().count())
     }
 
     @Test
@@ -70,9 +71,13 @@ class CurriculumRoomTest {
         val repo = CurriculumRepository(db, LessonProgressRepository(db.userLessonProgressDao()))
 
         val path = repo.loadA1Path()
-        assertEquals(A1Unit1Seed.UNIT_ID, path.unit.id)
-        assertEquals(CefrLevel.A1, path.unit.cefrLevel)
-        assertEquals(3, path.unit.lessons.size)
+        assertEquals(CefrLevel.A1, path.cefrLevel)
+        assertEquals(9, path.units.size)
+        assertEquals(A1Unit1Seed.UNIT_ID, path.units.first().unit.id)
+        assertEquals(
+            A1CurriculumSeed.units.map { it.id },
+            path.units.map { it.unit.id },
+        )
 
         val lessonId = A1Unit1Seed.LESSON_GREETINGS
         val exercises = repo.exercises(lessonId)
@@ -82,7 +87,30 @@ class CurriculumRoomTest {
 
         repo.markLessonCompleted(lessonId, totalExercises = 3)
         val after = repo.loadA1Path()
-        assertTrue(after.lessonProgress.getValue(lessonId).isCompleted)
+        val greetingsProgress = after.units
+            .flatMap { it.lessonProgress.entries }
+            .associate { it.toPair() }
+        assertTrue(greetingsProgress.getValue(lessonId).isCompleted)
+        // Nouvelles leçons non marquées terminées artificiellement
+        assertFalse(
+            greetingsProgress.getValue(A1CurriculumSeed.LESSON_NUMBERS).isCompleted,
+        )
+    }
+
+    @Test
+    fun upgradeSeed_preservesExistingLessonProgress() = runBlocking {
+        val progress = LessonProgressRepository(db.userLessonProgressDao())
+        // Simule une base déjà seedée « unité 1 » + progression
+        ContentSeedInitializer(db).ensureSeeded()
+        progress.completeLesson(A1Unit1Seed.LESSON_ALPHABET, totalExercises = 3)
+
+        // Re-seed (idempotent) : progression conservée, nouvelles leçons à 0
+        ContentSeedInitializer(db).ensureSeeded()
+        assertNotNull(progress.get(A1Unit1Seed.LESSON_ALPHABET)?.completedAtEpochMs)
+        assertEquals(
+            null,
+            progress.get(A1CurriculumSeed.LESSON_FAMILY)?.completedAtEpochMs,
+        )
     }
 
     @Test
@@ -131,8 +159,9 @@ class CurriculumRoomTest {
             assertEquals(0, migrated.curriculumUnitDao().count())
 
             val result = ContentSeedInitializer(migrated).ensureSeeded()
-            assertEquals(1, result.curriculumUnitCount)
-            assertEquals(3, result.curriculumLessonCount)
+            assertEquals(9, result.curriculumUnitCount)
+            assertEquals(19, result.curriculumLessonCount)
+            assertEquals(57, result.curriculumExerciseCount)
             assertFalse(result.alreadySeeded)
 
             assertEquals(

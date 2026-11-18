@@ -21,9 +21,14 @@ data class UnitWithProgress(
     val lessonProgress: Map<String, LessonProgressSummary>,
 )
 
+data class PathWithProgress(
+    val cefrLevel: CefrLevel,
+    val units: List<UnitWithProgress>,
+)
+
 /**
- * Parcours CECRL — lit le curriculum **Room** (seedé), pas le seed Kotlin en mémoire.
- * La progression reste dans `user_lesson_progress`.
+ * Parcours CECRL — lit le curriculum **Room** (seedé).
+ * Progression dans `user_lesson_progress` (hors `dialogue-*`).
  */
 class CurriculumRepository(
     private val db: RusskiDatabase,
@@ -48,27 +53,30 @@ class CurriculumRepository(
         db.curriculumExerciseDao().forLesson(lessonId).map { it.toDomain() }
     }
 
-    suspend fun loadA1Path(): UnitWithProgress = withContext(Dispatchers.IO) {
+    suspend fun loadA1Path(): PathWithProgress = withContext(Dispatchers.IO) {
         ensureSeeded()
-        val units = db.curriculumUnitDao().byCefrLevel(CefrLevel.A1.name)
-        val unitEntity = units.firstOrNull()
-            ?: error("Curriculum A1 absent — seed Room requis.")
-        val unit = loadUnit(unitEntity)
-        // Ignore les lignes dialogue-* : elles ne sont pas des leçons du parcours.
+        val unitEntities = db.curriculumUnitDao().byCefrLevel(CefrLevel.A1.name)
+        if (unitEntities.isEmpty()) error("Curriculum A1 absent — seed Room requis.")
+
         val stored = progressRepository.getAll()
             .filter { ProgressContentIds.isCurriculumLesson(it.lessonId) }
             .associateBy { it.lessonId }
-        val progress = unit.lessons.associate { lesson ->
-            ProgressContentIds.requireCurriculumLessonId(lesson.id)
-            val row = stored[lesson.id]
-            lesson.id to LessonProgressSummary(
-                lessonId = lesson.id,
-                completedExerciseCount = row?.completedExerciseCount ?: 0,
-                totalExerciseCount = lesson.exerciseCount,
-                completedAtEpochMs = row?.completedAtEpochMs,
-            )
+
+        val units = unitEntities.map { entity ->
+            val unit = loadUnit(entity)
+            val progress = unit.lessons.associate { lesson ->
+                ProgressContentIds.requireCurriculumLessonId(lesson.id)
+                val row = stored[lesson.id]
+                lesson.id to LessonProgressSummary(
+                    lessonId = lesson.id,
+                    completedExerciseCount = row?.completedExerciseCount ?: 0,
+                    totalExerciseCount = lesson.exerciseCount,
+                    completedAtEpochMs = row?.completedAtEpochMs,
+                )
+            }
+            UnitWithProgress(unit = unit, lessonProgress = progress)
         }
-        UnitWithProgress(unit = unit, lessonProgress = progress)
+        PathWithProgress(cefrLevel = CefrLevel.A1, units = units)
     }
 
     suspend fun markLessonOpened(lessonId: String) {

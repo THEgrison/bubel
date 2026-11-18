@@ -67,11 +67,15 @@ class ProgressIsolationTest {
         progress.completeLesson(A1Unit1Seed.LESSON_GREETINGS, totalExercises = 3)
 
         val path = curriculum.loadA1Path()
-        assertFalse(path.lessonProgress.keys.any { ProgressContentIds.isDialogue(it) })
-        assertEquals(3, path.unit.lessons.size)
-        assertTrue(path.lessonProgress.getValue(A1Unit1Seed.LESSON_GREETINGS).isCompleted)
+        val allProgress = path.units.flatMap { it.lessonProgress.keys }.toSet()
+        assertFalse(allProgress.any { ProgressContentIds.isDialogue(it) })
+        assertTrue(path.units.size >= 9)
+        val greetings = path.units
+            .flatMap { it.lessonProgress.entries }
+            .associate { it.toPair() }
+        assertTrue(greetings.getValue(A1Unit1Seed.LESSON_GREETINGS).isCompleted)
         // Dialogue terminé n'apparaît pas comme leçon
-        assertNull(path.lessonProgress[A1DialoguesSeed.ID_MEET])
+        assertNull(greetings[A1DialoguesSeed.ID_MEET])
     }
 
     @Test

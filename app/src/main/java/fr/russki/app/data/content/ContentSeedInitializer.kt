@@ -1,6 +1,6 @@
 package fr.russki.app.data.content
 
-import fr.russki.app.data.content.seed.A1Unit1Seed
+import fr.russki.app.data.content.seed.A1CurriculumSeed
 import fr.russki.app.data.content.seed.PhrasesSeed
 import fr.russki.app.data.content.seed.SeedContentPack
 import fr.russki.app.data.local.RusskiDatabase
@@ -75,18 +75,18 @@ class ContentSeedInitializer(
                 ),
             )
         }
-        if (curriculumVersion != CurriculumVersions.A1_UNIT1) {
+        if (curriculumVersion != CurriculumVersions.A1_PATH) {
             meta.upsert(
                 ContentMetaEntity(
                     key = ContentMetaKeys.CURRICULUM_VERSION,
-                    value = CurriculumVersions.A1_UNIT1,
+                    value = CurriculumVersions.A1_PATH,
                 ),
             )
         }
 
         return Result(
             alreadySeeded = current == SeedContentPack.VERSION &&
-                curriculumVersion == CurriculumVersions.A1_UNIT1,
+                curriculumVersion == CurriculumVersions.A1_PATH,
             bundledVersion = SeedContentPack.VERSION,
             letterCount = db.contentLetterDao().count(),
             wordCount = db.contentWordDao().count(),
@@ -99,9 +99,9 @@ class ContentSeedInitializer(
     }
 
     private suspend fun seedCurriculumA1() {
-        val unit = A1Unit1Seed.unit
+        val units = A1CurriculumSeed.units
         db.curriculumUnitDao().insertIgnore(
-            listOf(
+            units.map { unit ->
                 CurriculumUnitEntity(
                     id = unit.id,
                     cefrLevel = unit.cefrLevel.name,
@@ -109,38 +109,42 @@ class ContentSeedInitializer(
                     descriptionFr = unit.descriptionFr,
                     sortOrder = unit.sortOrder,
                     source = ContentSource.BUNDLED,
-                ),
-            ),
-        )
-        db.curriculumLessonDao().insertIgnore(
-            unit.lessons.map { lesson ->
-                CurriculumLessonEntity(
-                    id = lesson.id,
-                    unitId = lesson.unitId,
-                    titleFr = lesson.titleFr,
-                    objectiveFr = lesson.objectiveFr,
-                    introductionFr = lesson.introductionFr,
-                    summaryFr = lesson.summaryFr,
-                    sortOrder = lesson.sortOrder,
-                    exerciseCount = lesson.exerciseCount,
-                    legacyRouteHint = lesson.legacyRouteHint,
-                    source = ContentSource.BUNDLED,
                 )
             },
         )
-        val exercises = unit.lessons.flatMap { lesson ->
-            A1Unit1Seed.exercisesFor(lesson.id).map { ex ->
-                CurriculumExerciseEntity(
-                    id = ex.id,
-                    lessonId = lesson.id,
-                    type = ex.type.name,
-                    promptFr = ex.promptFr,
-                    stimulus = ex.stimulus,
-                    choicesJson = JSONArray(ex.choices).toString(),
-                    acceptedAnswersJson = JSONArray(ex.acceptedAnswers).toString(),
-                    explanationFr = ex.explanationFr,
-                    sortOrder = ex.sortOrder,
-                )
+        db.curriculumLessonDao().insertIgnore(
+            units.flatMap { unit ->
+                unit.lessons.map { lesson ->
+                    CurriculumLessonEntity(
+                        id = lesson.id,
+                        unitId = lesson.unitId,
+                        titleFr = lesson.titleFr,
+                        objectiveFr = lesson.objectiveFr,
+                        introductionFr = lesson.introductionFr,
+                        summaryFr = lesson.summaryFr,
+                        sortOrder = lesson.sortOrder,
+                        exerciseCount = lesson.exerciseCount,
+                        legacyRouteHint = lesson.legacyRouteHint,
+                        source = ContentSource.BUNDLED,
+                    )
+                }
+            },
+        )
+        val exercises = units.flatMap { unit ->
+            unit.lessons.flatMap { lesson ->
+                A1CurriculumSeed.exercisesFor(lesson.id).map { ex ->
+                    CurriculumExerciseEntity(
+                        id = ex.id,
+                        lessonId = lesson.id,
+                        type = ex.type.name,
+                        promptFr = ex.promptFr,
+                        stimulus = ex.stimulus,
+                        choicesJson = JSONArray(ex.choices).toString(),
+                        acceptedAnswersJson = JSONArray(ex.acceptedAnswers).toString(),
+                        explanationFr = ex.explanationFr,
+                        sortOrder = ex.sortOrder,
+                    )
+                }
             }
         }
         db.curriculumExerciseDao().insertIgnore(exercises)

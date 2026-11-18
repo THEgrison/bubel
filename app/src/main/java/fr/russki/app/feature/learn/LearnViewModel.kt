@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import fr.russki.app.data.curriculum.CurriculumRepository
-import fr.russki.app.data.curriculum.UnitWithProgress
+import fr.russki.app.data.curriculum.PathWithProgress
 import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.model.LoadState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,8 @@ class LearnViewModel(
         ServiceLocator.require().curriculumRepository,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<LoadState<UnitWithProgress>>(LoadState.Loading)
-    val state: StateFlow<LoadState<UnitWithProgress>> = _state.asStateFlow()
+    private val _state = MutableStateFlow<LoadState<PathWithProgress>>(LoadState.Loading)
+    val state: StateFlow<LoadState<PathWithProgress>> = _state.asStateFlow()
 
     init {
         refresh()

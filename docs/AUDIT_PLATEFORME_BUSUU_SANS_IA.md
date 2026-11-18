@@ -189,11 +189,11 @@ Livré. Validation reçue → étape 1.
 - Progression via `user_lesson_progress` (ids `dialogue-*`) — **pas de migration Room**.
 - Audio : chemins null ; UI « Audio indisponible ».
 
-### Étape 3 — Contenu A1 enrichi (hors IA)
+### Étape 3 — Contenu A1 enrichi — **livré (partiel, non certifiant)**
 
-- Unité 2 A1 (ex. nombres / famille) en seed local.
-- Au moins un dialogue scripté dans une leçon.
-- Nav Apprendre : liste multi-unités.
+- 9 unités A1 (premiers pas → révisions), 19 leçons, 57 exercices Room.
+- Apprendre multi-unités ; dialogues restent sous Parler.
+- Meta curriculum `a1-path-1.1.0` ; INSERT IGNORE — progression conservée.
 
 ### Étape 4 — Audio natifs **si et seulement si** fichiers + licences
 
