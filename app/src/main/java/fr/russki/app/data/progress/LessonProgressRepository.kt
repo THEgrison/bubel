@@ -25,32 +25,47 @@ class LessonProgressRepository(
         )
     }
 
+    /**
+     * Incrémente le compteur d’exercices réussis (pratique).
+     * Ne marque **jamais** la leçon terminée : seul [completeLesson] pose `completedAtEpochMs`
+     * (après rattrapage / test final / bilan selon le moteur pédagogique).
+     */
     suspend fun recordExerciseCompleted(lessonId: String, totalExercises: Int) {
         val existing = dao.get(lessonId)
-        val completed = (existing?.completedExerciseCount ?: 0) + 1
+        val cappedTotal = totalExercises.coerceAtLeast(0)
+        val completed = ((existing?.completedExerciseCount ?: 0) + 1).let { next ->
+            if (cappedTotal > 0) next.coerceAtMost(cappedTotal) else next
+        }
+        // Pas de double crédit si déjà au plafond (recomposition / double clic).
+        if (existing != null &&
+            cappedTotal > 0 &&
+            existing.completedExerciseCount >= cappedTotal
+        ) {
+            dao.upsert(
+                existing.copy(lastOpenedEpochMs = clock()),
+            )
+            return
+        }
         dao.upsert(
             UserLessonProgressEntity(
                 lessonId = lessonId,
                 completedExerciseCount = completed,
                 lastOpenedEpochMs = clock(),
-                completedAtEpochMs = if (completed >= totalExercises) {
-                    clock()
-                } else {
-                    existing?.completedAtEpochMs
-                },
+                completedAtEpochMs = existing?.completedAtEpochMs,
             ),
         )
     }
 
-    /** Marque la leçon terminée sans sur-incrémenter le compteur. */
+    /** Marque la leçon terminée sans sur-incrémenter le compteur au-delà du total. */
     suspend fun completeLesson(lessonId: String, totalExercises: Int) {
         val existing = dao.get(lessonId)
+        val total = totalExercises.coerceAtLeast(0)
         dao.upsert(
             UserLessonProgressEntity(
                 lessonId = lessonId,
                 completedExerciseCount = maxOf(
                     existing?.completedExerciseCount ?: 0,
-                    totalExercises,
+                    total,
                 ),
                 lastOpenedEpochMs = clock(),
                 completedAtEpochMs = existing?.completedAtEpochMs ?: clock(),

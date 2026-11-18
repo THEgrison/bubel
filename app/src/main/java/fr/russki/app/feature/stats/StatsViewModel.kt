@@ -27,7 +27,9 @@ class StatsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _state.value = LoadState.Loading
+            if (_state.value !is LoadState.Ready) {
+                _state.value = LoadState.Loading
+            }
             runCatching { statsRepository.loadSnapshot() }
                 .onSuccess { _state.value = LoadState.Ready(it) }
                 .onFailure {

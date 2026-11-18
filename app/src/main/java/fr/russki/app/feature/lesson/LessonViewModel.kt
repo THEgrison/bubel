@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fr.russki.app.data.content.seed.LessonExerciseEnricher
 import fr.russki.app.data.content.seed.LessonTeachCatalog
 import fr.russki.app.data.curriculum.CurriculumRepository
+import fr.russki.app.data.review.ReviewRepository
 import fr.russki.app.di.ServiceLocator
 import fr.russki.app.domain.lesson.LessonEngine
 import fr.russki.app.domain.lesson.LessonPhase
@@ -15,11 +16,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class LessonViewModel(
     private val lessonId: String,
     private val curriculumRepository: CurriculumRepository =
         ServiceLocator.require().curriculumRepository,
+    private val reviewRepository: ReviewRepository =
+        ServiceLocator.require().reviewRepository,
     private val engine: LessonEngine = LessonEngine(),
     private val onPedagogicalActivity: () -> Unit = {
         ServiceLocator.require().statsRepository.markPedagogicalActivity()
@@ -29,6 +34,10 @@ class LessonViewModel(
     private val _state = MutableStateFlow<LoadState<LessonSessionState>>(LoadState.Loading)
     val state: StateFlow<LoadState<LessonSessionState>> = _state.asStateFlow()
 
+    private val completionMutex = Mutex()
+    @Volatile
+    private var completionPersisted = false
+
     init {
         start()
     }
@@ -36,6 +45,7 @@ class LessonViewModel(
     fun start() {
         viewModelScope.launch {
             _state.value = LoadState.Loading
+            completionPersisted = false
             runCatching {
                 val lesson = curriculumRepository.lesson(lessonId)
                     ?: error("Leçon introuvable: $lessonId")
@@ -88,7 +98,7 @@ class LessonViewModel(
         updateSession { engine.advanceAfterFeedback(it) }
         val session = (_state.value as? LoadState.Ready)?.value ?: return
         if (session.phase == LessonPhase.Summary) {
-            markCompleted(session)
+            persistCompletion(session)
         }
     }
 
@@ -96,7 +106,7 @@ class LessonViewModel(
         updateSession { engine.beginFinalCheck(it) }
         val session = (_state.value as? LoadState.Ready)?.value ?: return
         if (session.phase == LessonPhase.Summary) {
-            markCompleted(session)
+            persistCompletion(session)
         }
     }
 
@@ -104,19 +114,37 @@ class LessonViewModel(
         updateSession { engine.skipFinalToSummary(it) }
         val session = (_state.value as? LoadState.Ready)?.value ?: return
         if (session.phase == LessonPhase.Summary) {
-            markCompleted(session)
+            persistCompletion(session)
         }
     }
 
-    fun finish() = updateSession { engine.complete(it) }
-
-    private fun markCompleted(session: LessonSessionState) {
+    /**
+     * Persiste la fin de leçon (idempotent), synchronise le SRS, puis appelle [onDone].
+     * Évite de quitter l’écran avant l’écriture Room.
+     */
+    fun finish(onDone: () -> Unit = {}) {
+        val session = (_state.value as? LoadState.Ready)?.value ?: return
         viewModelScope.launch {
+            persistCompletionAwait(session)
+            runCatching { reviewRepository.syncUnlockedCards() }
+            _state.value = LoadState.Ready(engine.complete(session))
+            onDone()
+        }
+    }
+
+    private fun persistCompletion(session: LessonSessionState) {
+        viewModelScope.launch { persistCompletionAwait(session) }
+    }
+
+    private suspend fun persistCompletionAwait(session: LessonSessionState) {
+        completionMutex.withLock {
+            if (completionPersisted) return
             curriculumRepository.markLessonCompleted(
                 lessonId = session.lesson.id,
                 totalExercises = session.practiceExercises.size,
             )
             onPedagogicalActivity()
+            completionPersisted = true
         }
     }
 

@@ -33,7 +33,9 @@ class ReviewViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _state.value = LoadState.Loading
+            if (_state.value is LoadState.Loading || _state.value is LoadState.Error) {
+                _state.value = LoadState.Loading
+            }
             runCatching {
                 val unlocked = reviewRepository.syncUnlockedCards()
                 ReviewUiModel(

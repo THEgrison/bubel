@@ -7,7 +7,8 @@ Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, e
 - Navigation : **Apprendre / Réviser / Parler / Profil**
 - Design system : bleu nuit / crème, feedback pédagogique vert/rouge partagé (`AnswerFeedbackBanner`, `AnswerChoiceButton`)
 - Correction visuelle immédiate sur leçons, dialogues, placement, écoute, SRS, quiz et alphabet
-- Parcours **débutant A1** enrichi (9 unités / 19 leçons en Room v3) — couverture progressive, non certifiante
+- Parcours **débutant A1** (`a1-path-1.2.0` : 10 unités / 28 leçons / 103 exercices en Room v3) — couverture progressive, non certifiante
+- Progression leçon : `completedAt` uniquement au bilan (pas en fin de pratique) ; écran Apprendre / Réviser / Stats rafraîchis au retour
 - **Parler** : 3 dialogues A1 scriptés (texte + activités), audio optionnel non inventé
 - **Statistiques** (Profil) : avancement curriculum, dialogues séparés, objectif 5/10/15 min, séries locales
 - **Test de placement** (Apprendre / Profil) : estimation indicative hors ligne, sans modifier la progression des leçons

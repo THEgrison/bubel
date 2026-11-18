@@ -26,7 +26,10 @@ class LearnViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _state.value = LoadState.Loading
+            // Évite un flash « Chargement… » au retour d’une leçon (ON_RESUME).
+            if (_state.value !is LoadState.Ready) {
+                _state.value = LoadState.Loading
+            }
             runCatching { curriculumRepository.loadA1Path() }
                 .onSuccess { path ->
                     _state.value = LoadState.Ready(path)

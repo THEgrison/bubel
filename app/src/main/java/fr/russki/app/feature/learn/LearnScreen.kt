@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.russki.app.core.ui.components.ErrorState
@@ -40,6 +42,10 @@ fun LearnRoute(
     onOpenPlacement: () -> Unit = {},
     viewModel: LearnViewModel = viewModel(factory = LearnViewModel.Factory()),
 ) {
+    // Le ViewModel survit dans le back stack (saveState) : recharger après une leçon.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refresh()
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     LearnScreen(
         state = state,
@@ -112,7 +118,15 @@ private fun UnitSection(
     onOpenLesson: (String) -> Unit,
 ) {
     SoftPanel {
-        SectionLabel("Unité ${block.unit.sortOrder}")
+        val completed = block.unit.lessons.count { block.lessonProgress[it.id]?.isCompleted == true }
+        val total = block.unit.lessons.size
+        SectionLabel(
+            if (block.unit.sortOrder <= 0) {
+                block.unit.titleFr
+            } else {
+                "Unité ${block.unit.sortOrder}"
+            },
+        )
         SpacerH(6)
         Text(block.unit.titleFr, style = MaterialTheme.typography.titleLarge)
         SpacerH(6)
@@ -120,6 +134,12 @@ private fun UnitSection(
             block.unit.descriptionFr,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SpacerH(8)
+        MetaChip("$completed / $total leçons terminées")
+        SpacerH(8)
+        ProgressLine(
+            progress = if (total <= 0) 0f else completed.toFloat() / total.toFloat(),
         )
     }
     block.unit.lessons.forEach { lesson ->

@@ -13,8 +13,8 @@ android {
         applicationId = "fr.russki.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.2.2-beta"
+        versionCode = 5
+        versionName = "0.2.3-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

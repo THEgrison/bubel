@@ -39,14 +39,17 @@ data class LessonProgressSummary(
     val totalExerciseCount: Int,
     val completedAtEpochMs: Long?,
 ) {
+    /**
+     * Terminée uniquement si `completedAtEpochMs` est posé par [fr.russki.app.data.progress.LessonProgressRepository.completeLesson].
+     * Le seul compteur d’exercices ne suffit plus (évite un « Terminée » avant rattrapage / bilan).
+     */
     val isCompleted: Boolean
-        get() = completedAtEpochMs != null ||
-            (totalExerciseCount > 0 && completedExerciseCount >= totalExerciseCount)
+        get() = completedAtEpochMs != null
 
     val fraction: Float
-        get() = if (totalExerciseCount <= 0) {
-            0f
-        } else {
-            (completedExerciseCount.toFloat() / totalExerciseCount).coerceIn(0f, 1f)
+        get() = when {
+            isCompleted -> 1f
+            totalExerciseCount <= 0 -> 0f
+            else -> (completedExerciseCount.toFloat() / totalExerciseCount).coerceIn(0f, 1f)
         }
 }

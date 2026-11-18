@@ -80,8 +80,7 @@ fun LessonRoute(
             onBeginFinal = viewModel::beginFinalCheck,
             onSkipFinal = viewModel::skipToSummary,
             onFinish = {
-                viewModel.finish()
-                onBack()
+                viewModel.finish(onDone = onBack)
             },
             onOpenLegacyAlphabet = onOpenLegacyAlphabet,
             onOpenLegacyGreetings = onOpenLegacyGreetings,
