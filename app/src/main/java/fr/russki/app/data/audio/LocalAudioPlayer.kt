@@ -11,6 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /**
  * Lecteur local minimal — assets embarqués ou fichiers sous filesDir.
  * Ne lance jamais une lecture si la ressource est absente.
+ * Enregistrement dans [LocalPlaybackCoordinator] pour une seule lecture active.
  * Libérer via [release] / cycle de vie (onDestroy).
  */
 class LocalAudioPlayer(
@@ -34,6 +35,10 @@ class LocalAudioPlayer(
 
     val playbackState: PlaybackState get() = state
 
+    init {
+        LocalPlaybackCoordinator.register(this)
+    }
+
     fun addStateListener(listener: (PlaybackState) -> Unit) {
         listeners += listener
         listener(state)
@@ -53,6 +58,7 @@ class LocalAudioPlayer(
     }
 
     fun playAsset(assetPath: String): Boolean {
+        LocalPlaybackCoordinator.requestExclusive(this)
         return runCatching {
             stopInternal(resetLast = false)
             context.assets.openFd(assetPath).use { afd ->
@@ -78,6 +84,7 @@ class LocalAudioPlayer(
             setState(PlaybackState.Error)
             return false
         }
+        LocalPlaybackCoordinator.requestExclusive(this)
         return runCatching {
             stopInternal(resetLast = false)
             val mp = MediaPlayer()
@@ -124,7 +131,22 @@ class LocalAudioPlayer(
 
     fun stop() = stopInternal(resetLast = false)
 
+    /**
+     * Arrêt demandé par le coordinateur quand un autre lecteur démarre.
+     * Conserve la dernière source pour permettre [replay] plus tard.
+     */
+    internal fun stopForHandoff() {
+        if (state == PlaybackState.Playing || state == PlaybackState.Paused) {
+            stopInternal(resetLast = false)
+        }
+    }
+
     override fun onPause(owner: LifecycleOwner) {
+        pause()
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
+        // Passage en arrière-plan : coupe le son sans perdre la piste (reprise possible).
         pause()
     }
 
@@ -133,6 +155,7 @@ class LocalAudioPlayer(
     }
 
     fun release() {
+        LocalPlaybackCoordinator.unregister(this)
         stopInternal(resetLast = true)
         setState(PlaybackState.Idle)
     }

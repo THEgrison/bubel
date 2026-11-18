@@ -124,20 +124,27 @@ fun DialogueReaderScreen(
 
 @Composable
 private fun IntroPhase(ui: DialogueReaderUi, onBegin: () -> Unit) {
-    SoftPanel {
-        SectionLabel("Situation")
-        Text(ui.session.script.outline.situationFr, style = MaterialTheme.typography.bodyLarge)
-        SpacerH(12)
-        SectionLabel("Objectif")
-        Text(ui.session.script.outline.objectiveFr, style = MaterialTheme.typography.bodyMedium)
-        SpacerH(12)
-        MetaChip("${ui.session.script.outline.cefrLevel.name} · ${ui.session.script.lines.size} répliques")
-        SpacerH(16)
-        PrimaryButton(
-            text = "Commencer le dialogue",
-            onClick = onBegin,
-            modifier = Modifier.fillMaxWidth(),
-        )
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        SoftPanel {
+            SectionLabel("Situation")
+            Text(ui.session.script.outline.situationFr, style = MaterialTheme.typography.bodyLarge)
+            SpacerH(12)
+            SectionLabel("Objectif")
+            Text(ui.session.script.outline.objectiveFr, style = MaterialTheme.typography.bodyMedium)
+            SpacerH(12)
+            MetaChip("${ui.session.script.outline.cefrLevel.name} · ${ui.session.script.lines.size} répliques")
+            SpacerH(16)
+            PrimaryButton(
+                text = "Commencer le dialogue",
+                onClick = onBegin,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 
@@ -262,29 +269,36 @@ private fun SummaryPhase(
     onRestart: () -> Unit,
 ) {
     val session = ui.session
-    SoftPanel {
-        SectionLabel("Résumé")
-        Text(
-            text = "Bonnes réponses : ${session.correctCount} / ${session.script.activities.size}",
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        SpacerH(8)
-        Text(
-            text = session.script.outline.objectiveFr,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        SpacerH(16)
-        PrimaryButton(
-            text = "Retour au catalogue",
-            onClick = onFinish,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        SpacerH(8)
-        SecondaryButton(
-            text = "Recommencer ce dialogue",
-            onClick = onRestart,
-            modifier = Modifier.fillMaxWidth(),
-        )
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        SoftPanel {
+            SectionLabel("Résumé")
+            Text(
+                text = "Bonnes réponses : ${session.correctCount} / ${session.script.activities.size}",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            SpacerH(8)
+            Text(
+                text = session.script.outline.objectiveFr,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SpacerH(16)
+            PrimaryButton(
+                text = "Retour au catalogue",
+                onClick = onFinish,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            SpacerH(8)
+            SecondaryButton(
+                text = "Recommencer ce dialogue",
+                onClick = onRestart,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }

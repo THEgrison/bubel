@@ -1,7 +1,8 @@
 package fr.russki.app.feature.audio
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -26,8 +26,10 @@ import fr.russki.app.domain.content.ResolvedAudio
 /**
  * Contrôles lecture / pause / répétition pour un [ResolvedAudio] local.
  * Affiche « Audio indisponible » si [audio] est null — sans crash.
- * Une seule source à la fois dans ce contrôle ; changement de [audio] arrête la lecture.
+ * Une seule source à la fois dans ce contrôle ; le coordinateur de lecture
+ * empêche les lectures concurrentes entre contrôles.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LocalAudioControls(
     audio: ResolvedAudio?,
@@ -65,10 +67,10 @@ fun LocalAudioControls(
         return
     }
 
-    Row(
+    FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         when (playback) {
             PlaybackState.Playing -> {

@@ -109,7 +109,11 @@ private fun StatsContent(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(unit.titleFr, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = unit.titleFr,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
                     MetaChip("${unit.completedLessons}/${unit.totalLessons}")
                 }
                 SpacerH(6)

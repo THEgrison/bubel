@@ -2,7 +2,10 @@ package fr.russki.app.feature.review
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +64,12 @@ fun ReviewScreen(
             LoadState.Loading -> LoadingState()
             is LoadState.Error -> ErrorState(message = state.message, onRetry = onRetry)
             is LoadState.Empty -> FadeInContent(visible = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
                     EmptyState(
                         title = "Rien à réviser pour l'instant",
                         body = state.message,
@@ -78,7 +86,12 @@ fun ReviewScreen(
             }
             is LoadState.Ready -> FadeInContent(visible = true) {
                 val model = state.value
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
                     SoftPanel {
                         SectionLabel("File du jour")
                         Text(

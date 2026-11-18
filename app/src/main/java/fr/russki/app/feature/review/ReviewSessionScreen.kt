@@ -179,30 +179,37 @@ private fun Summary(
     onRetry: () -> Unit,
     onDone: () -> Unit,
 ) {
-    SoftPanel {
-        SectionLabel("Récapitulatif")
-        Text(
-            text = "Score : ${session.correctCount} / ${session.queue.size}",
-            style = MaterialTheme.typography.titleLarge,
-        )
-        SpacerH(8)
-        Text(
-            text = "Les erreurs reviennent rapidement ; les succès espacent la prochaine échéance. " +
-                "Ce n’est pas un algorithme scientifiquement optimal — règles locales déterministes.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        SpacerH(12)
-        PrimaryButton(
-            text = "Voir s'il reste des éléments dus",
-            onClick = onRetry,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        SpacerH(8)
-        SecondaryButton(
-            text = "Terminer",
-            onClick = onDone,
-            modifier = Modifier.fillMaxWidth(),
-        )
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        SoftPanel {
+            SectionLabel("Récapitulatif")
+            Text(
+                text = "Score : ${session.correctCount} / ${session.queue.size}",
+                style = MaterialTheme.typography.titleLarge,
+            )
+            SpacerH(8)
+            Text(
+                text = "Les erreurs reviennent rapidement ; les succès espacent la prochaine échéance. " +
+                    "Ce n’est pas un algorithme scientifiquement optimal — règles locales déterministes.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SpacerH(12)
+            PrimaryButton(
+                text = "Voir s'il reste des éléments dus",
+                onClick = onRetry,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            SpacerH(8)
+            SecondaryButton(
+                text = "Terminer",
+                onClick = onDone,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }

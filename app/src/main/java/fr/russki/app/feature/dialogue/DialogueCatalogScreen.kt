@@ -119,6 +119,7 @@ private fun DialogueCard(
             Text(
                 text = item.outline.titleFr,
                 style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
             )
             MetaChip(item.outline.cefrLevel.name)
         }

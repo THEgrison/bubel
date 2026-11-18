@@ -36,4 +36,24 @@ class ReviewEngineTest {
         session = engine.advance(session)
         assertTrue(session.finished)
     }
+
+    @Test
+    fun submit_twiceOnSameItem_keepsFirstGrade_noDoubleCount() {
+        val item = items.first()
+        var session = engine.start(listOf(item))
+        session = engine.submit(session, "mauvaise")
+        assertFalse(session.currentGrade!!.isCorrect)
+        assertEquals(0, session.correctCount)
+        assertEquals(1, session.grades.size)
+
+        // Deuxième submit en Feedback : l'engine refuse (phase != Prompt).
+        try {
+            engine.submit(session, item.acceptedAnswers.first())
+            assertTrue("doit lever si phase Feedback", false)
+        } catch (_: IllegalStateException) {
+            // attendu
+        }
+        assertEquals(0, session.correctCount)
+        assertEquals(1, session.grades.size)
+    }
 }
