@@ -12,11 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,7 +34,9 @@ import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -179,35 +179,40 @@ private fun OralContent(
             SpacerH(12)
             when (micState) {
                 LocalVoiceRecorder.State.Recording -> {
-                    Button(
+                    PrimaryButton(
+                        text = "Arrêter l'enregistrement",
                         onClick = {
                             recorder.stopRecording()
                             refreshMic()
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Arrêter l'enregistrement") }
+                    )
                 }
                 LocalVoiceRecorder.State.Recorded,
                 LocalVoiceRecorder.State.PlayingBack,
                 -> {
-                    OutlinedButton(
+                    SecondaryButton(
+                        text = "Réécouter mon enregistrement",
                         onClick = {
                             recorder.playRecording()
                             refreshMic()
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Réécouter mon enregistrement") }
-                    OutlinedButton(
+                    )
+                    SpacerH(8)
+                    SecondaryButton(
+                        text = "Supprimer et recommencer",
                         onClick = {
                             recorder.deleteRecording()
                             statusMessage = null
                             refreshMic()
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Supprimer et recommencer") }
+                    )
                 }
                 else -> {
-                    Button(
+                    PrimaryButton(
+                        text = "Enregistrer ma voix",
                         onClick = {
                             val granted = ContextCompat.checkSelfPermission(
                                 context,
@@ -225,11 +230,12 @@ private fun OralContent(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Enregistrer ma voix") }
+                    )
                 }
             }
         }
-        OutlinedButton(
+        SecondaryButton(
+            text = "Phrase précédente",
             onClick = {
                 recorder.deleteRecording()
                 statusMessage = null
@@ -238,8 +244,9 @@ private fun OralContent(
             },
             enabled = ui.index > 0,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Phrase précédente") }
-        Button(
+        )
+        PrimaryButton(
+            text = "Phrase suivante",
             onClick = {
                 recorder.deleteRecording()
                 statusMessage = null
@@ -248,7 +255,7 @@ private fun OralContent(
             },
             enabled = ui.index < ui.prompts.lastIndex,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Phrase suivante") }
+        )
         TextButton(
             onClick = {
                 recorder.clearSession()

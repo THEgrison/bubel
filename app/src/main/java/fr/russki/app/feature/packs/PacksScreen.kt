@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,7 +20,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -61,9 +62,12 @@ fun PacksScreen(
         title = "Packs",
         subtitle = "Locaux et distants — les leçons embarquées restent utilisables hors ligne.",
     ) {
-        TextButton(onClick = onBack) {
-            Text("Retour")
-        }
+        SecondaryButton(
+            text = "Retour",
+            onClick = onBack,
+            modifier = Modifier.fillMaxWidth(),
+            compact = true,
+        )
         SpacerH(8)
         if (message != null) {
             SoftPanel {
@@ -186,27 +190,27 @@ private fun PackCard(
                 )
             }
             pack.state == InstalledPackState.INSTALLED -> {
-                TextButton(onClick = onDelete) {
-                    Text("Supprimer le pack")
-                }
+                SecondaryButton(
+                    text = "Supprimer le pack",
+                    onClick = onDelete,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
             pack.state == InstalledPackState.DOWNLOADING -> {
                 Text("Installation en cours…", style = MaterialTheme.typography.bodyMedium)
             }
             else -> {
                 val canInstall = pack.availableLocally || pack.isRemote
-                Button(
+                PrimaryButton(
+                    text = when {
+                        pack.availableLocally -> "Installer hors ligne"
+                        pack.isRemote -> "Télécharger (HTTPS)"
+                        else -> "Indisponible"
+                    },
                     onClick = onInstall,
                     enabled = canInstall,
-                ) {
-                    Text(
-                        when {
-                            pack.availableLocally -> "Installer hors ligne"
-                            pack.isRemote -> "Télécharger (HTTPS)"
-                            else -> "Indisponible"
-                        },
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 if (pack.lastError != null) {
                     SpacerH(6)
                     Text(

@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,8 +22,10 @@ import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -80,12 +81,17 @@ fun DialogueCatalogScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(8)
-                        TextButton(onClick = onOpenListening) {
-                            Text("Mode écoute (repli texte si besoin)")
-                        }
-                        TextButton(onClick = onOpenOral) {
-                            Text("Entraînement oral (micro optionnel)")
-                        }
+                        PrimaryButton(
+                            text = "Mode écoute (repli texte si besoin)",
+                            onClick = onOpenListening,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        SpacerH(8)
+                        SecondaryButton(
+                            text = "Entraînement oral (micro optionnel)",
+                            onClick = onOpenOral,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                     state.value.forEach { item ->
                         DialogueCard(item = item, onOpen = { onOpenDialogue(item.outline.id) })

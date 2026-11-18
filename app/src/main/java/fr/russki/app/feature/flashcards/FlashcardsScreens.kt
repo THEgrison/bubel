@@ -11,11 +11,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,7 +29,9 @@ import fr.russki.app.core.ui.components.EmptyState
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.flashcard.FlashcardFace
@@ -87,13 +87,17 @@ fun FlashcardsScreen(
                                 style = MaterialTheme.typography.titleLarge,
                             )
                             SpacerH(12)
-                            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-                                Text("Actualiser les cartes dues")
-                            }
+                            PrimaryButton(
+                                text = "Actualiser les cartes dues",
+                                onClick = onRetry,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                             SpacerH(8)
-                            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                                Text("Retour")
-                            }
+                            SecondaryButton(
+                                text = "Retour",
+                                onClick = onBack,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 } else {
@@ -175,32 +179,38 @@ fun FlashcardsScreen(
                                     Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                    OutlinedButton(
+                                    SecondaryButton(
+                                        text = "À revoir",
                                         onClick = { onGrade(SrsRating.Again) },
                                         modifier = Modifier.weight(1f),
-                                    ) { Text("À revoir") }
-                                    OutlinedButton(
+                                    )
+                                    SecondaryButton(
+                                        text = "Difficile",
                                         onClick = { onGrade(SrsRating.Hard) },
                                         modifier = Modifier.weight(1f),
-                                    ) { Text("Difficile") }
+                                    )
                                 }
                                 Row(
                                     Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                    Button(
+                                    PrimaryButton(
+                                        text = "Bien",
                                         onClick = { onGrade(SrsRating.Good) },
                                         modifier = Modifier.weight(1f),
-                                    ) { Text("Bien") }
-                                    Button(
+                                    )
+                                    PrimaryButton(
+                                        text = "Facile",
                                         onClick = { onGrade(SrsRating.Easy) },
                                         modifier = Modifier.weight(1f),
-                                    ) { Text("Facile") }
+                                    )
                                 }
                             } else {
-                                Button(onClick = onFlip, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Retourner la carte")
-                                }
+                                PrimaryButton(
+                                    text = "Retourner la carte",
+                                    onClick = onFlip,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
                             }
                             SpacerH(8)
                         }

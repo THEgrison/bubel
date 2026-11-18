@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,6 +24,7 @@ import fr.russki.app.core.ui.components.LoadingState
 import fr.russki.app.core.ui.components.MetaChip
 import fr.russki.app.core.ui.components.ProgressLine
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -81,9 +81,11 @@ fun LearnScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(8)
-                        TextButton(onClick = onOpenPlacement) {
-                            Text("Test de placement (estimation)")
-                        }
+                        SecondaryButton(
+                            text = "Test de placement (estimation)",
+                            onClick = onOpenPlacement,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                     path.units.forEach { unitBlock ->
                         UnitSection(

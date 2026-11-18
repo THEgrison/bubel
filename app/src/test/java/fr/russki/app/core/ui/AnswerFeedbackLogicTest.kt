@@ -104,6 +104,17 @@ class AnswerFeedbackLogicTest {
     }
 
     @Test
+    fun lightAndDarkSemanticPalettes_keepDistinctCorrectIncorrect() {
+        val lightCorrect = fr.russki.app.core.ui.theme.Correct
+        val lightIncorrect = fr.russki.app.core.ui.theme.Incorrect
+        val darkCorrect = fr.russki.app.core.ui.theme.NightCorrect
+        val darkIncorrect = fr.russki.app.core.ui.theme.NightIncorrect
+        assertNotEquals(lightCorrect, lightIncorrect)
+        assertNotEquals(darkCorrect, darkIncorrect)
+        assertNotEquals(lightCorrect, darkIncorrect)
+    }
+
+    @Test
     fun incorrect_doesNotRevealBeforeAnswer() {
         val idleVisual = choiceVisual(
             state = AnswerFeedbackState.Idle,

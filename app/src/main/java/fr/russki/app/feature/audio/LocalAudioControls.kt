@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.data.audio.LocalAudioPlayer
 import fr.russki.app.data.audio.PlaybackState
 import fr.russki.app.domain.content.ResolvedAudio
@@ -61,13 +61,25 @@ fun LocalAudioControls(
     ) {
         when (playback) {
             PlaybackState.Playing -> {
-                OutlinedButton(onClick = { player.pause() }) { Text("Pause") }
+                SecondaryButton(
+                    text = "Pause",
+                    onClick = { player.pause() },
+                    compact = true,
+                )
             }
             PlaybackState.Paused -> {
-                OutlinedButton(onClick = { player.resume() }) { Text("Reprendre") }
+                SecondaryButton(
+                    text = "Reprendre",
+                    onClick = { player.resume() },
+                    compact = true,
+                )
             }
             else -> {
-                OutlinedButton(onClick = { player.play(audio) }) { Text("Écouter") }
+                SecondaryButton(
+                    text = "Écouter",
+                    onClick = { player.play(audio) },
+                    compact = true,
+                )
             }
         }
         TextButton(onClick = { player.replay() }) {

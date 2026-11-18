@@ -255,7 +255,7 @@ fun AnswerFeedbackBanner(
                         text = "Bonne réponse : $correctAnswerLabel",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = feedback.onCorrectContainer,
+                        color = feedback.correct,
                     )
                 }
                 if (!explanation.isNullOrBlank()) {

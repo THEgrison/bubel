@@ -198,9 +198,11 @@ private fun ProfileContent(
                 onCheckedChange = onOfflineOnlyChange,
             )
             SpacerH(12)
-            TextButton(onClick = onOpenPacks) {
-                Text("Gérer les packs")
-            }
+            SecondaryButton(
+                text = "Gérer les packs",
+                onClick = onOpenPacks,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         SoftPanel {

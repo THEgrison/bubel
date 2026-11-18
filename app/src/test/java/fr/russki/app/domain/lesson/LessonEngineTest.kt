@@ -52,6 +52,23 @@ class LessonEngineTest {
     }
 
     @Test
+    fun submitAnswer_twice_keepsFirstGrade_noDoubleCount() {
+        val lesson = A1Unit1Seed.unit.lessons.first { it.id == A1Unit1Seed.LESSON_GREETINGS }
+        val exercises = A1Unit1Seed.exercisesFor(lesson.id)
+        var session = engine.beginExercises(engine.start(lesson, exercises))
+        session = engine.submitAnswer(session, "mauvaise")
+        assertFalse(session.currentGrade!!.isCorrect)
+        assertEquals(1, session.grades.size)
+        assertEquals(0, session.correctCount)
+
+        session = engine.submitAnswer(session, exercises.first().acceptedAnswers.first())
+        assertFalse(session.currentGrade!!.isCorrect)
+        assertEquals(1, session.grades.size)
+        assertEquals(0, session.correctCount)
+        assertEquals("mauvaise", session.currentGrade!!.userAnswer)
+    }
+
+    @Test
     fun seed_coversAtLeastThreeExerciseTypes() {
         val types = A1Unit1Seed.unit.lessons
             .flatMap { A1Unit1Seed.exercisesFor(it.id) }

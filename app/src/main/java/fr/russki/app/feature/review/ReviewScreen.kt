@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Style
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +17,9 @@ import fr.russki.app.core.ui.components.EmptyState
 import fr.russki.app.core.ui.components.ErrorState
 import fr.russki.app.core.ui.components.FadeInContent
 import fr.russki.app.core.ui.components.LoadingState
+import fr.russki.app.core.ui.components.PrimaryButton
 import fr.russki.app.core.ui.components.ScreenScaffold
+import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
@@ -69,9 +69,11 @@ fun ReviewScreen(
                         actionLabel = "Aller à Apprendre",
                         onAction = onGoLearn,
                     )
-                    Button(onClick = onOpenQuiz, modifier = Modifier.fillMaxWidth()) {
-                        Text("Lancer un quiz")
-                    }
+                    PrimaryButton(
+                        text = "Lancer un quiz",
+                        onClick = onOpenQuiz,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
             is LoadState.Ready -> FadeInContent(visible = true) {
@@ -105,27 +107,23 @@ fun ReviewScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(12)
-                        Button(
+                        PrimaryButton(
+                            text = if (model.dueCount > 0) {
+                                "Démarrer une session courte"
+                            } else {
+                                "Rien à réviser pour l’instant"
+                            },
                             onClick = onOpenReviewSession,
-                            modifier = Modifier.fillMaxWidth(),
                             enabled = model.dueCount > 0,
-                        ) {
-                            Text(
-                                if (model.dueCount > 0) {
-                                    "Démarrer une session courte"
-                                } else {
-                                    "Rien à réviser pour l’instant"
-                                },
-                            )
-                        }
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                         SpacerH(8)
-                        OutlinedButton(
+                        SecondaryButton(
+                            text = "Flashcards (auto-évaluation)",
                             onClick = onOpenFlashcards,
-                            modifier = Modifier.fillMaxWidth(),
                             enabled = model.dueCount > 0,
-                        ) {
-                            Text("Flashcards (auto-évaluation)")
-                        }
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                     SoftPanel {
                         Text("Quiz", style = MaterialTheme.typography.titleMedium)
@@ -140,15 +138,15 @@ fun ReviewScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SpacerH(12)
-                        Button(onClick = onOpenQuiz, modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                if (model.hasInterruptedQuiz) {
-                                    "Reprendre le quiz"
-                                } else {
-                                    "Nouveau quiz"
-                                },
-                            )
-                        }
+                        PrimaryButton(
+                            text = if (model.hasInterruptedQuiz) {
+                                "Reprendre le quiz"
+                            } else {
+                                "Nouveau quiz"
+                            },
+                            onClick = onOpenQuiz,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }

@@ -107,11 +107,12 @@ fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    compact: Boolean = false,
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(52.dp),
+        modifier = modifier.height(if (compact) 40.dp else 52.dp),
         shape = RoundedCornerShape(RusskiRadii.Md.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -119,6 +120,11 @@ fun PrimaryButton(
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
+        contentPadding = if (compact) {
+            PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+        } else {
+            ButtonDefaults.ContentPadding
+        },
     ) {
         Text(
             text = text,
@@ -134,16 +140,22 @@ fun SecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    compact: Boolean = false,
 ) {
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(52.dp),
+        modifier = modifier.height(if (compact) 40.dp else 52.dp),
         shape = RoundedCornerShape(RusskiRadii.Md.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.5.dp,
             if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.outlineVariant,
         ),
+        contentPadding = if (compact) {
+            PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+        } else {
+            ButtonDefaults.ContentPadding
+        },
     ) {
         Text(
             text = text,
