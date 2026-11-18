@@ -23,6 +23,10 @@ data class PackStatusUi(
     val installedAtEpochMs: Long?,
     val lastError: String?,
     val availableLocally: Boolean,
+    /** Chemin manifeste API si pack distant. */
+    val manifestPath: String? = null,
+    val remoteSha256: String? = null,
+    val isRemote: Boolean = false,
 ) {
     val sizeLabel: String
         get() = when {

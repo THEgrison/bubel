@@ -49,7 +49,7 @@ fun PacksRoute(
 
 @Composable
 fun PacksScreen(
-    state: LoadState<List<PackStatusUi>>,
+    state: LoadState<PacksUiModel>,
     message: String?,
     onRetry: () -> Unit,
     onBack: () -> Unit,
@@ -58,8 +58,8 @@ fun PacksScreen(
     onDismissMessage: () -> Unit,
 ) {
     ScreenScaffold(
-        title = "Packs hors ligne",
-        subtitle = "Taille, disponibilité et installation — sans attendre le réseau.",
+        title = "Packs",
+        subtitle = "Locaux et distants — les leçons embarquées restent utilisables hors ligne.",
     ) {
         TextButton(onClick = onBack) {
             Text("Retour")
@@ -85,7 +85,27 @@ fun PacksScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    state.value.forEach { pack ->
+                    SoftPanel {
+                        SectionLabel("Réseau")
+                        Text(
+                            text = if (state.value.onlineConfigured) {
+                                "API configurée (HTTPS)."
+                            } else {
+                                "API non configurée — catalogue distant indisponible. " +
+                                    "Définissez RUSSKI_API_BASE_URL au build."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        state.value.remoteNote?.let { note ->
+                            SpacerH(6)
+                            Text(
+                                text = note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    state.value.packs.forEach { pack ->
                         PackCard(
                             pack = pack,
                             onInstall = { onInstall(pack.packId) },
@@ -112,7 +132,13 @@ private fun PackCard(
     onDelete: () -> Unit,
 ) {
     SoftPanel {
-        SectionLabel(if (pack.isBundled) "Embarqué" else "Optionnel")
+        SectionLabel(
+            when {
+                pack.isBundled -> "Embarqué"
+                pack.isRemote -> "Distant"
+                else -> "Optionnel"
+            },
+        )
         Text(text = pack.titleFr, style = MaterialTheme.typography.titleLarge)
         SpacerH(4)
         Text(
@@ -136,10 +162,11 @@ private fun PackCard(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    text = if (pack.availableLocally) {
-                        "Disponible hors ligne"
-                    } else {
-                        "Nécessite un téléchargement distant"
+                    text = when {
+                        pack.state == InstalledPackState.INSTALLED -> "Disponible hors ligne"
+                        pack.availableLocally -> "Installable depuis les assets"
+                        pack.isRemote -> "Téléchargement HTTPS (checksum)"
+                        else -> "Indisponible hors ligne"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -167,15 +194,16 @@ private fun PackCard(
                 Text("Installation en cours…", style = MaterialTheme.typography.bodyMedium)
             }
             else -> {
+                val canInstall = pack.availableLocally || pack.isRemote
                 Button(
                     onClick = onInstall,
-                    enabled = pack.availableLocally,
+                    enabled = canInstall,
                 ) {
                     Text(
-                        if (pack.availableLocally) {
-                            "Installer hors ligne"
-                        } else {
-                            "Télécharger (réseau requis)"
+                        when {
+                            pack.availableLocally -> "Installer hors ligne"
+                            pack.isRemote -> "Télécharger (HTTPS)"
+                            else -> "Indisponible"
                         },
                     )
                 }

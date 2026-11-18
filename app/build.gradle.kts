@@ -17,6 +17,18 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // URL publique HTTPS uniquement — jamais de secret serveur ici.
+        val apiBase = (project.findProperty("RUSSKI_API_BASE_URL") as String?)
+            ?.trim()
+            .orEmpty()
+        buildConfigField("String", "RUSSKI_API_BASE_URL", "\"$apiBase\"")
+        buildConfigField(
+            "boolean",
+            "RUSSKI_ONLINE_ENABLED",
+            if (apiBase.startsWith("https://")) "true" else "false",
+        )
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -43,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -74,6 +87,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -90,6 +107,8 @@ dependencies {
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.robolectric)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

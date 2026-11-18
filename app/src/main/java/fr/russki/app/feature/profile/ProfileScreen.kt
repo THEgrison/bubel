@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -27,7 +28,6 @@ import fr.russki.app.core.ui.components.SectionLabel
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.domain.model.LoadState
-import fr.russki.app.domain.model.ProfileSettings
 import fr.russki.app.domain.model.ThemePreference
 
 @Composable
@@ -44,18 +44,22 @@ fun ProfileRoute(
         onOfflineOnlyChange = viewModel::setOfflinePacksOnly,
         onThemeChange = viewModel::setThemePreference,
         onOpenPacks = onOpenPacks,
+        onSyncOptInChange = viewModel::setSyncOptIn,
+        onSyncPush = viewModel::requestSyncPush,
     )
 }
 
 @Composable
 fun ProfileScreen(
-    state: LoadState<ProfileSettings>,
+    state: LoadState<ProfileUi>,
     onRetry: () -> Unit,
     onDailyGoalChange: (Int) -> Unit,
     onSoundChange: (Boolean) -> Unit,
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit = {},
+    onSyncOptInChange: (Boolean) -> Unit = {},
+    onSyncPush: () -> Unit = {},
 ) {
     ScreenScaffold(
         title = "Profil",
@@ -70,12 +74,14 @@ fun ProfileScreen(
             )
             is LoadState.Ready -> FadeInContent(visible = true) {
                 ProfileContent(
-                    settings = state.value,
+                    ui = state.value,
                     onDailyGoalChange = onDailyGoalChange,
                     onSoundChange = onSoundChange,
                     onOfflineOnlyChange = onOfflineOnlyChange,
                     onThemeChange = onThemeChange,
                     onOpenPacks = onOpenPacks,
+                    onSyncOptInChange = onSyncOptInChange,
+                    onSyncPush = onSyncPush,
                 )
             }
         }
@@ -84,14 +90,18 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileContent(
-    settings: ProfileSettings,
+    ui: ProfileUi,
     onDailyGoalChange: (Int) -> Unit,
     onSoundChange: (Boolean) -> Unit,
     onOfflineOnlyChange: (Boolean) -> Unit,
     onThemeChange: (ThemePreference) -> Unit,
     onOpenPacks: () -> Unit,
+    onSyncOptInChange: (Boolean) -> Unit,
+    onSyncPush: () -> Unit,
 ) {
-    Column(Modifier
+    val settings = ui.settings
+    Column(
+        Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -114,7 +124,8 @@ private fun ProfileContent(
                 style = MaterialTheme.typography.titleMedium,
             )
             SpacerH(8)
-            Row(Modifier.fillMaxWidth(),
+            Row(
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -163,7 +174,41 @@ private fun ProfileContent(
             )
             SpacerH(12)
             TextButton(onClick = onOpenPacks) {
-                Text("Gérer les packs hors ligne")
+                Text("Gérer les packs")
+            }
+        }
+
+        SoftPanel {
+            SectionLabel("Synchronisation (facultative)")
+            Text(
+                text = "En cas d’activation, Russki n’envoie que des identifiants de leçons " +
+                    "et des compteurs SRS — pas de nom ni d’e-mail. " +
+                    "Le serveur de sync n’est pas encore déployé : sans jeton, " +
+                    "aucune donnée ne part et la progression locale reste intacte.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SpacerH(12)
+            SettingSwitchRow(
+                title = "Autoriser la sync",
+                subtitle = if (ui.syncServerConfigured) {
+                    "API configurée — jeton d’auth encore requis (non déployé)"
+                } else {
+                    "API non configurée (RUSSKI_API_BASE_URL)"
+                },
+                checked = ui.syncOptIn,
+                onCheckedChange = onSyncOptInChange,
+            )
+            SpacerH(8)
+            Button(
+                onClick = onSyncPush,
+                enabled = ui.syncOptIn,
+            ) {
+                Text("Tenter une synchronisation")
+            }
+            ui.syncMessage?.let { msg ->
+                SpacerH(8)
+                Text(text = msg, style = MaterialTheme.typography.bodySmall)
             }
         }
 
@@ -174,9 +219,6 @@ private fun ProfileContent(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
         )
-        TextButton(onClick = { /* phase suivante */ }) {
-            Text("À propos de Russki")
-        }
         SpacerH(8)
     }
 }
@@ -188,7 +230,8 @@ private fun SettingSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth(),
+    Row(
+        Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

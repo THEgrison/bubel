@@ -1,37 +1,32 @@
 # Russki
 
-Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, entièrement en français — **offline-first**.
+Application Android native (Kotlin + Jetpack Compose) pour apprendre le russe, entièrement en français — **offline-first**, avec services en ligne **facultatifs**.
 
 ## État actuel
 
-- Thème Material 3 clair / sombre
-- Navigation : Accueil, Apprendre, Réviser, Profil
-- **Contenu pédagogique v1.0.0** embarqué : alphabet (33 lettres), exercices, vocabulaire salutations, phrases
-- **Room v2** : lettres, mots, phrases, leçons/exercices, métadonnées audio, packs, quiz, flashcards/SRS, historique, dates de révision, progression leçons
-- Migrations explicites (pas de wipe destructif) ; seed idempotent
-- **Quiz** + **Flashcards / SRS** 100 % locaux
-- **Packs hors ligne** : Profil → Gérer les packs (taille, disponibilité, installation / suppression sans toucher la progression)
+- Contenu pédagogique v1.0.0 embarqué + Room v2 (leçons, quiz, flashcards/SRS, packs)
+- Mode avion : leçons, quiz, flashcards, progression — documenté dans [docs/OFFLINE.md](docs/OFFLINE.md)
+- En ligne optionnel : catalogue distant, packs audio (checksum, reprise, WorkManager), sync progression opt-in
+- Architecture / sécurité : [docs/ONLINE_ARCHITECTURE.md](docs/ONLINE_ARCHITECTURE.md)
+- Contrats API : [docs/API_v1.md](docs/API_v1.md)
+- Déploiement : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
-Voir [docs/OFFLINE.md](docs/OFFLINE.md) pour le détail du mode avion.
+Sans `RUSSKI_API_BASE_URL`, le client utilise `DisabledOnlineApi` : **aucun backend fictif n’est présenté comme opérationnel**.
 
 ## Prérequis
 
-- JDK 17+ (JDK 21 testé)
-- Android SDK (`compileSdk` / `targetSdk` 37, build-tools 36+)
-- `ANDROID_HOME` ou `local.properties` avec `sdk.dir=…`
+- JDK 17+
+- Android SDK (`compileSdk` / `targetSdk` 37)
+- `ANDROID_HOME` ou `local.properties`
 
 ## Compilation
 
 ```bash
 ./gradlew :app:assembleDebug
 ./gradlew :app:testDebugUnitTest
+
+# Avec API distante (HTTPS uniquement) :
+./gradlew :app:assembleDebug -PRUSSKI_API_BASE_URL=https://api.exemple.fr
 ```
 
-APK : `app/build/outputs/apk/debug/app-debug.apk`
-
-Stack : AGP 9.5.1, Kotlin 2.2.21, Compose BOM 2026.09.00, Room 2.8.5, Gradle Wrapper 9.6.0.
-
-## Architecture
-
-Présentation Compose → ViewModels / StateFlow → domain → data (Room, seed embarqué, packs locaux).  
-Réseau / Retrofit / WorkManager : réservés aux packs distants futurs — non requis pour les fonctions essentielles.
+Stack : AGP 9.5.1, Kotlin 2.2.21, Compose BOM 2026.09.00, Room 2.8.5, OkHttp 4.12, WorkManager 2.10.5.
