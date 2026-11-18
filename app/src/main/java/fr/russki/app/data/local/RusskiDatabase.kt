@@ -12,6 +12,9 @@ import fr.russki.app.data.local.dao.ContentMetaDao
 import fr.russki.app.data.local.dao.ContentPackDao
 import fr.russki.app.data.local.dao.ContentPhraseDao
 import fr.russki.app.data.local.dao.ContentWordDao
+import fr.russki.app.data.local.dao.CurriculumExerciseDao
+import fr.russki.app.data.local.dao.CurriculumLessonDao
+import fr.russki.app.data.local.dao.CurriculumUnitDao
 import fr.russki.app.data.local.dao.FlashcardHistoryDao
 import fr.russki.app.data.local.dao.InstalledPackDao
 import fr.russki.app.data.local.dao.QuizSessionDao
@@ -26,6 +29,9 @@ import fr.russki.app.data.local.entity.ContentPackEntity
 import fr.russki.app.data.local.entity.ContentPackMemberEntity
 import fr.russki.app.data.local.entity.ContentPhraseEntity
 import fr.russki.app.data.local.entity.ContentWordEntity
+import fr.russki.app.data.local.entity.CurriculumExerciseEntity
+import fr.russki.app.data.local.entity.CurriculumLessonEntity
+import fr.russki.app.data.local.entity.CurriculumUnitEntity
 import fr.russki.app.data.local.entity.FlashcardReviewHistoryEntity
 import fr.russki.app.data.local.entity.InstalledPackEntity
 import fr.russki.app.data.local.entity.QuizAnswerEntity
@@ -51,8 +57,11 @@ import fr.russki.app.data.local.migration.RusskiMigrations
         FlashcardReviewHistoryEntity::class,
         UserLessonProgressEntity::class,
         InstalledPackEntity::class,
+        CurriculumUnitEntity::class,
+        CurriculumLessonEntity::class,
+        CurriculumExerciseEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class RusskiDatabase : RoomDatabase() {
@@ -69,6 +78,9 @@ abstract class RusskiDatabase : RoomDatabase() {
     abstract fun flashcardHistoryDao(): FlashcardHistoryDao
     abstract fun userLessonProgressDao(): UserLessonProgressDao
     abstract fun installedPackDao(): InstalledPackDao
+    abstract fun curriculumUnitDao(): CurriculumUnitDao
+    abstract fun curriculumLessonDao(): CurriculumLessonDao
+    abstract fun curriculumExerciseDao(): CurriculumExerciseDao
 
     companion object {
         const val NAME = "russki.db"

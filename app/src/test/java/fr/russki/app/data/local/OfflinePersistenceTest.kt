@@ -248,16 +248,18 @@ class OfflinePersistenceTest {
 
         val migrated = Room.databaseBuilder(context, RusskiDatabase::class.java, name)
             .allowMainThreadQueries()
-            .addMigrations(RusskiMigrations.MIGRATION_1_2)
+            .addMigrations(*RusskiMigrations.ALL)
             .build()
 
         runBlocking {
             assertNotNull(migrated.quizSessionDao().getSession("legacy-quiz"))
             assertEquals(42L, migrated.srsCardDao().get("legacy-card")?.nextReviewEpochMs)
             assertNull(migrated.contentMetaDao().get(ContentMetaKeys.BUNDLED_VERSION))
-            ContentSeedInitializer(migrated).ensureSeeded()
+            val seeded = ContentSeedInitializer(migrated).ensureSeeded()
             assertEquals(33, migrated.contentLetterDao().count())
             assertEquals(42L, migrated.srsCardDao().get("legacy-card")?.nextReviewEpochMs)
+            assertEquals(1, seeded.curriculumUnitCount)
+            assertEquals(3, seeded.curriculumLessonCount)
         }
         migrated.close()
         context.deleteDatabase(name)

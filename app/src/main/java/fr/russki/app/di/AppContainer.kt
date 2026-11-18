@@ -50,7 +50,11 @@ class AppContainer(
         LessonProgressRepository(database.userLessonProgressDao())
 
     val curriculumRepository: CurriculumRepository =
-        CurriculumRepository(lessonProgressRepository)
+        CurriculumRepository(
+            db = database,
+            progressRepository = lessonProgressRepository,
+            ensureSeeded = { seedInitializer.ensureSeeded() },
+        )
 
     val quizRepository: QuizRepository = QuizRepository(
         dao = database.quizSessionDao(),

@@ -1,5 +1,6 @@
 package fr.russki.app.data.content
 
+import fr.russki.app.data.content.seed.A1Unit1Seed
 import fr.russki.app.data.content.seed.PhrasesSeed
 import fr.russki.app.data.content.seed.SeedContentPack
 import fr.russki.app.data.local.RusskiDatabase
@@ -12,6 +13,9 @@ import fr.russki.app.data.local.entity.ContentPackEntity
 import fr.russki.app.data.local.entity.ContentPackMemberEntity
 import fr.russki.app.data.local.entity.ContentPhraseEntity
 import fr.russki.app.data.local.entity.ContentWordEntity
+import fr.russki.app.data.local.entity.CurriculumExerciseEntity
+import fr.russki.app.data.local.entity.CurriculumLessonEntity
+import fr.russki.app.data.local.entity.CurriculumUnitEntity
 import fr.russki.app.data.local.entity.InstalledPackEntity
 import org.json.JSONArray
 
@@ -34,11 +38,15 @@ class ContentSeedInitializer(
         val wordCount: Int,
         val phraseCount: Int,
         val lessonCount: Int,
+        val curriculumUnitCount: Int,
+        val curriculumLessonCount: Int,
+        val curriculumExerciseCount: Int,
     )
 
     suspend fun ensureSeeded(): Result {
         val meta = db.contentMetaDao()
         val current = meta.get(ContentMetaKeys.BUNDLED_VERSION)
+        val curriculumVersion = meta.get(ContentMetaKeys.CURRICULUM_VERSION)
         val pack = SeedContentPack.pack
         ContentValidator.requireValid(pack)
 
@@ -48,6 +56,7 @@ class ContentSeedInitializer(
         seedWords()
         seedPhrases()
         seedLessonsAndExercises()
+        seedCurriculumA1()
         seedAudioMetadata()
         seedPackCatalog()
         ensureCorePackInstalled()
@@ -66,15 +75,75 @@ class ContentSeedInitializer(
                 ),
             )
         }
+        if (curriculumVersion != CurriculumVersions.A1_UNIT1) {
+            meta.upsert(
+                ContentMetaEntity(
+                    key = ContentMetaKeys.CURRICULUM_VERSION,
+                    value = CurriculumVersions.A1_UNIT1,
+                ),
+            )
+        }
 
         return Result(
-            alreadySeeded = current == SeedContentPack.VERSION,
+            alreadySeeded = current == SeedContentPack.VERSION &&
+                curriculumVersion == CurriculumVersions.A1_UNIT1,
             bundledVersion = SeedContentPack.VERSION,
             letterCount = db.contentLetterDao().count(),
             wordCount = db.contentWordDao().count(),
             phraseCount = db.contentPhraseDao().count(),
             lessonCount = db.contentLessonDao().count(),
+            curriculumUnitCount = db.curriculumUnitDao().count(),
+            curriculumLessonCount = db.curriculumLessonDao().count(),
+            curriculumExerciseCount = db.curriculumExerciseDao().count(),
         )
+    }
+
+    private suspend fun seedCurriculumA1() {
+        val unit = A1Unit1Seed.unit
+        db.curriculumUnitDao().insertIgnore(
+            listOf(
+                CurriculumUnitEntity(
+                    id = unit.id,
+                    cefrLevel = unit.cefrLevel.name,
+                    titleFr = unit.titleFr,
+                    descriptionFr = unit.descriptionFr,
+                    sortOrder = unit.sortOrder,
+                    source = ContentSource.BUNDLED,
+                ),
+            ),
+        )
+        db.curriculumLessonDao().insertIgnore(
+            unit.lessons.map { lesson ->
+                CurriculumLessonEntity(
+                    id = lesson.id,
+                    unitId = lesson.unitId,
+                    titleFr = lesson.titleFr,
+                    objectiveFr = lesson.objectiveFr,
+                    introductionFr = lesson.introductionFr,
+                    summaryFr = lesson.summaryFr,
+                    sortOrder = lesson.sortOrder,
+                    exerciseCount = lesson.exerciseCount,
+                    legacyRouteHint = lesson.legacyRouteHint,
+                    source = ContentSource.BUNDLED,
+                )
+            },
+        )
+        val exercises = unit.lessons.flatMap { lesson ->
+            A1Unit1Seed.exercisesFor(lesson.id).map { ex ->
+                CurriculumExerciseEntity(
+                    id = ex.id,
+                    lessonId = lesson.id,
+                    type = ex.type.name,
+                    promptFr = ex.promptFr,
+                    stimulus = ex.stimulus,
+                    choicesJson = JSONArray(ex.choices).toString(),
+                    acceptedAnswersJson = JSONArray(ex.acceptedAnswers).toString(),
+                    explanationFr = ex.explanationFr,
+                    sortOrder = ex.sortOrder,
+                )
+            }
+        }
+        db.curriculumExerciseDao().insertIgnore(exercises)
     }
 
     private suspend fun seedLetters() {

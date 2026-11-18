@@ -9,6 +9,12 @@ object ContentSource {
 object ContentMetaKeys {
     const val BUNDLED_VERSION = "bundled_content_version"
     const val SEED_COMPLETED_AT = "seed_completed_at_epoch_ms"
+    /** Version du parcours CECRL (unités / leçons / exercices interactifs). */
+    const val CURRICULUM_VERSION = "curriculum_version"
+}
+
+object CurriculumVersions {
+    const val A1_UNIT1 = "a1-unit1-1.0.0"
 }
 
 object PackIds {

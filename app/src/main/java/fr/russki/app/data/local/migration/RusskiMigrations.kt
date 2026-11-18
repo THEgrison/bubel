@@ -8,6 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  *
  * v1 : quiz_sessions, quiz_answers, srs_cards
  * v2 : catalogue pédagogique + packs + historique flashcards + progression leçons
+ * v3 : curriculum CECRL (unités, leçons parcours, exercices interactifs)
  */
 object RusskiMigrations {
 
@@ -213,5 +214,76 @@ object RusskiMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2)
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS curriculum_units (
+                    id TEXT NOT NULL,
+                    cefrLevel TEXT NOT NULL,
+                    titleFr TEXT NOT NULL,
+                    descriptionFr TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL,
+                    source TEXT NOT NULL,
+                    PRIMARY KEY(id)
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_units_cefrLevel ON curriculum_units(cefrLevel)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_units_sortOrder ON curriculum_units(sortOrder)",
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS curriculum_lessons (
+                    id TEXT NOT NULL,
+                    unitId TEXT NOT NULL,
+                    titleFr TEXT NOT NULL,
+                    objectiveFr TEXT NOT NULL,
+                    introductionFr TEXT NOT NULL,
+                    summaryFr TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL,
+                    exerciseCount INTEGER NOT NULL,
+                    legacyRouteHint TEXT,
+                    source TEXT NOT NULL,
+                    PRIMARY KEY(id),
+                    FOREIGN KEY(unitId) REFERENCES curriculum_units(id) ON DELETE CASCADE
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_lessons_unitId ON curriculum_lessons(unitId)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_lessons_unitId_sortOrder ON curriculum_lessons(unitId, sortOrder)",
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS curriculum_exercises (
+                    id TEXT NOT NULL,
+                    lessonId TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    promptFr TEXT NOT NULL,
+                    stimulus TEXT NOT NULL,
+                    choicesJson TEXT NOT NULL,
+                    acceptedAnswersJson TEXT NOT NULL,
+                    explanationFr TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL,
+                    PRIMARY KEY(id),
+                    FOREIGN KEY(lessonId) REFERENCES curriculum_lessons(id) ON DELETE CASCADE
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_exercises_lessonId ON curriculum_exercises(lessonId)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_curriculum_exercises_lessonId_sortOrder ON curriculum_exercises(lessonId, sortOrder)",
+            )
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }

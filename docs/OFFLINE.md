@@ -32,7 +32,8 @@ Aucune de ces actions n'appelle Retrofit, WorkManager ni une API distante.
 
 - Room **v1** : quiz + SRS  
 - Room **v2** : catalogue pédagogique + packs + historique + progression leçons  
-- `RusskiMigrations.MIGRATION_1_2` — pas de `fallbackToDestructiveMigration` en production  
+- Room **v3** : curriculum CECRL (`curriculum_units` / `curriculum_lessons` / `curriculum_exercises`)  
+- `RusskiMigrations` 1→2 et 2→3 — pas de `fallbackToDestructiveMigration` en production  
 - Schémas exportés sous `app/schemas/`
 
 ## Packs (Profil → Gérer les packs hors ligne)

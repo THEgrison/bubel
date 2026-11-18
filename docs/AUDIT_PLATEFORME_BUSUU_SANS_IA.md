@@ -171,16 +171,16 @@ Principes transverses :
 4. Contenu pédagogique **embarqué ou pack local** ; online reste optionnel.
 5. Ne pas afficher audio / oral / sync comme prêts s’ils ne le sont pas.
 
-### Étape 0 — Gel audit (cette livraison)
+### Étape 0 — Gel audit
 
-Livrer ce document. **Pas de code produit.** Validation avant étape 1.
+Livré. Validation reçue → étape 1.
 
-### Étape 1 — Unifier le curriculum en Room
+### Étape 1 — Unifier le curriculum en Room — **livré**
 
-- Tables ou meta curriculum (niveaux → unités → leçons) + migration Room **2→3** si besoin.
-- Seed A1 écrit dans Room (fin de la double source mémoire seule).
-- `CurriculumRepository` lit Room ; progression inchangée.
-- Tests : seed idempotent, migration, chemin A1.
+- Tables `curriculum_units` / `curriculum_lessons` / `curriculum_exercises` + migration Room **2→3**.
+- Seed A1 écrit dans Room (INSERT IGNORE) ; meta `curriculum_version`.
+- `CurriculumRepository` lit Room ; progression `user_lesson_progress` inchangée.
+- Tests : `CurriculumRoomTest` + migration 1→3 mise à jour.
 
 ### Étape 2 — Étendre le moteur d’exercices
 
