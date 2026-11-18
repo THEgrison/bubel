@@ -5,8 +5,10 @@ import androidx.test.core.app.ApplicationProvider
 import fr.russki.app.data.content.ContentSeedInitializer
 import fr.russki.app.data.content.seed.A1DialoguesSeed
 import fr.russki.app.data.content.seed.A1Unit1Seed
+import fr.russki.app.data.content.seed.CyrillicPathSeed
 import fr.russki.app.data.local.RusskiDatabase
 import fr.russki.app.data.progress.LessonProgressRepository
+import fr.russki.app.data.review.ReviewableCatalog
 import fr.russki.app.domain.exercise.ExerciseGrade
 import fr.russki.app.domain.srs.SrsLearningState
 import fr.russki.app.domain.srs.SrsScheduler
@@ -145,5 +147,38 @@ class ReviewRepositoryTest {
         assertEquals(0, review.dueItems().count { it.id == item.id })
         now += SrsScheduler.DAY_MS * 2
         assertTrue(review.dueCount() >= 1)
+    }
+
+    @Test
+    fun cyrillicGroup_unlocksLetterCards_syncIdempotent_preservesSchedule() = runBlocking {
+        progress.completeLesson(CyrillicPathSeed.LESSON_G1, 5)
+        val expectedLetters = CyrillicPathSeed.groups.first().letterIds.size
+        val catalog = ReviewableCatalog.itemsForCompleted(setOf(CyrillicPathSeed.LESSON_G1))
+            .filter { it.id.startsWith("rv-letter-") }
+        assertEquals(expectedLetters, catalog.size)
+
+        val synced = review.syncUnlockedCards()
+        val letterCards = synced.filter { it.id.startsWith("rv-letter-") }
+        assertEquals(expectedLetters, letterCards.size)
+        val ids = letterCards.map { it.id }
+        assertEquals(ids.size, ids.toSet().size)
+
+        val firstId = letterCards.first().id
+        val before = review.cardState(firstId)!!
+        // Re-sync : pas de doublon, échéance inchangée
+        review.syncUnlockedCards()
+        review.syncUnlockedCards()
+        assertEquals(before.nextReviewEpochMs, review.cardState(firstId)!!.nextReviewEpochMs)
+        assertEquals(
+            letterCards.size,
+            db.srsCardDao().getAll().count { it.cardId.startsWith("rv-letter-") },
+        )
+
+        // Groupe 2 n’ajoute pas de doublon sur les lettres du groupe 1
+        progress.completeLesson(CyrillicPathSeed.LESSON_G2, 5)
+        review.syncUnlockedCards()
+        val allLetterIds = db.srsCardDao().getAll().map { it.cardId }.filter { it.startsWith("rv-letter-") }
+        assertEquals(allLetterIds.size, allLetterIds.toSet().size)
+        assertEquals(12, allLetterIds.size) // 6 + 6
     }
 }
