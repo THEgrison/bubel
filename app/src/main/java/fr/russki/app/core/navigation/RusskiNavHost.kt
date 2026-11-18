@@ -26,9 +26,11 @@ import androidx.navigation.navArgument
 import fr.russki.app.feature.alphabet.AlphabetExercisesRoute
 import fr.russki.app.feature.alphabet.AlphabetRoute
 import fr.russki.app.feature.alphabet.LetterDetailRoute
+import fr.russki.app.feature.flashcards.FlashcardsRoute
 import fr.russki.app.feature.home.HomeRoute
 import fr.russki.app.feature.learn.LearnRoute
 import fr.russki.app.feature.profile.ProfileRoute
+import fr.russki.app.feature.quiz.QuizRoute
 import fr.russki.app.feature.review.ReviewRoute
 import fr.russki.app.feature.vocabulary.GreetingsVocabularyRoute
 
@@ -37,6 +39,8 @@ private object LessonRoutes {
     const val AlphabetExercises = "lesson/alphabet/exercises"
     const val Letter = "lesson/alphabet/letter/{letterId}"
     const val Greetings = "lesson/vocabulary/greetings"
+    const val Quiz = "lesson/quiz"
+    const val Flashcards = "lesson/flashcards"
 
     fun letter(id: String) = "lesson/alphabet/letter/$id"
 }
@@ -147,6 +151,8 @@ fun RusskiAppShell() {
                             restoreState = true
                         }
                     },
+                    onOpenFlashcards = { navController.navigate(LessonRoutes.Flashcards) },
+                    onOpenQuiz = { navController.navigate(LessonRoutes.Quiz) },
                 )
             }
             composable(RusskiDestination.Profile.route) {
@@ -174,6 +180,12 @@ fun RusskiAppShell() {
             }
             composable(LessonRoutes.Greetings) {
                 GreetingsVocabularyRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Quiz) {
+                QuizRoute(onBack = { navController.popBackStack() })
+            }
+            composable(LessonRoutes.Flashcards) {
+                FlashcardsRoute(onBack = { navController.popBackStack() })
             }
         }
     }

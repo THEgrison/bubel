@@ -1,16 +1,11 @@
 package fr.russki.app
 
 import android.app.Application
-import fr.russki.app.data.content.AssetAudioAvailability
-import fr.russki.app.data.content.OfflineContentRepository
+import fr.russki.app.di.ServiceLocator
 
 class RusskiApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        OfflineContentRepository.install(
-            OfflineContentRepository(
-                audioAvailability = AssetAudioAvailability(this),
-            ),
-        )
+        ServiceLocator.init(this)
     }
 }

@@ -24,6 +24,8 @@ class OfflineContentRepository(
 
     fun contentVersion(): String = pack.version
 
+    fun contentPack() = pack
+
     fun alphabetModule(): AlphabetModule = pack.alphabet
 
     fun letters(): List<AlphabetLetter> = pack.alphabet.letters.sortedBy { it.order }
