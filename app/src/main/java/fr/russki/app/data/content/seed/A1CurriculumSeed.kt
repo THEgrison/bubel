@@ -114,8 +114,8 @@ object A1CurriculumSeed {
         listOf(
             les(
                 LESSON_FAMILY, U5, 1, "La famille",
-                "Nommer мама, папа, брат, сестра, друг.",
-                "У меня есть брат = j'ai un frère.",
+                "Nommer мама, папа, брат, сестра.",
+                "У меня есть брат = j'ai un frère. (друг = ami apparaît dans la leçon suivante.)",
                 "Vous reconnaissez les mots de famille essentiels.",
             ),
             les(
@@ -307,8 +307,8 @@ object A1CurriculumSeed {
             ),
             LESSON_FAMILY to listOf(
                 e("a1-ex-fam-01", T.MatchTranslation, 1, "Que signifie « мама » ?", "мама",
-                    listOf("maman", "papa", "sœur", "amie"), listOf("maman", "Maman", "mère"),
-                    "мама = maman."),
+                    listOf("maman", "papa", "sœur", "amie"), listOf("maman", "Maman"),
+                    "мама = maman (registre familier ; « mère » se dit plutôt мать)."),
                 e("a1-ex-fam-02", T.MultipleChoice, 2, "Quel mot signifie « frère » ?", "…",
                     listOf("брат", "сестра", "папа", "друг"), listOf("брат", "Брат"),
                     "брат = frère."),
@@ -355,10 +355,12 @@ object A1CurriculumSeed {
                     "чай = thé."),
                 e("a1-ex-ord-03", T.WordOrder, 3, "Ordre : « Un café, s'il vous plaît ».",
                     "Мне кофе, пожалуйста.",
-                    listOf("Мне", "кофе,", "пожалуйста."),
+                    listOf("Мне", "кофе", "пожалуйста"),
                     listOf(
+                        "Мне кофе пожалуйста",
                         "Мне кофе, пожалуйста.",
                         "Мне кофе, пожалуйста",
+                        "мне кофе пожалуйста",
                         "мне кофе, пожалуйста",
                     ),
                     "Мне + boisson + пожалуйста."),

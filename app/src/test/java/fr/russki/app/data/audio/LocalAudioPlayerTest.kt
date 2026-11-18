@@ -44,6 +44,11 @@ class LocalAudioPlayerTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val player = LocalAudioPlayer(context)
         player.pause()
+        assertEquals(
+            "pause() sans lecture ne doit pas passer en Paused",
+            PlaybackState.Idle,
+            player.playbackState,
+        )
         player.resume()
         player.stop()
         assertTrue(player.playbackState == PlaybackState.Idle || player.playbackState == PlaybackState.Error)

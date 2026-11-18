@@ -54,11 +54,11 @@ internal object GreetingsVocabularySeed {
             VocabularyEntry(
                 id = "vocab-greet-004",
                 textRu = "добрый день",
-                translationFr = "bonjour / bonne journée",
+                translationFr = "bonjour (dans la journée)",
                 category = "salutations",
                 level = ContentLevel.Beginner,
                 exampleRu = "Добрый день!",
-                exampleFr = "Bonjour !",
+                exampleFr = "Bonjour ! (dans la journée)",
                 audioAssetPath = null,
             ),
             VocabularyEntry(

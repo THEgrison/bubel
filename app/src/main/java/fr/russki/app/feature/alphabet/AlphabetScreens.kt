@@ -141,13 +141,18 @@ fun LetterDetailRoute(
 ) {
     LaunchedEffect(letterId) { viewModel.loadLetter(letterId) }
     val state by viewModel.letter.collectAsStateWithLifecycle()
-    LetterDetailScreen(state = state, onBack = onBack)
+    LetterDetailScreen(
+        state = state,
+        onBack = onBack,
+        onRetry = { viewModel.loadLetter(letterId) },
+    )
 }
 
 @Composable
 fun LetterDetailScreen(
     state: LoadState<LetterDetail>,
     onBack: () -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
         IconButton(onClick = onBack) {
@@ -155,7 +160,7 @@ fun LetterDetailScreen(
         }
         when (state) {
             LoadState.Loading -> LoadingState()
-            is LoadState.Error -> ErrorState(message = state.message, onRetry = {})
+            is LoadState.Error -> ErrorState(message = state.message, onRetry = onRetry)
             is LoadState.Empty -> EmptyState(title = "Introuvable", body = state.message)
             is LoadState.Ready -> {
                 val detail = state.value

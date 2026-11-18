@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.data.audio.LocalAudioPlayer
 import fr.russki.app.data.audio.PlaybackState
@@ -24,6 +26,7 @@ import fr.russki.app.domain.content.ResolvedAudio
 /**
  * Contrôles lecture / pause / répétition pour un [ResolvedAudio] local.
  * Affiche « Audio indisponible » si [audio] est null — sans crash.
+ * Une seule source à la fois dans ce contrôle ; changement de [audio] arrête la lecture.
  */
 @Composable
 fun LocalAudioControls(
@@ -32,16 +35,24 @@ fun LocalAudioControls(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val player = remember { LocalAudioPlayer(context) }
     var playback by remember { mutableStateOf(PlaybackState.Idle) }
 
-    DisposableEffect(player) {
+    DisposableEffect(player, lifecycleOwner) {
         val listener: (PlaybackState) -> Unit = { playback = it }
         player.addStateListener(listener)
+        lifecycleOwner.lifecycle.addObserver(player)
         onDispose {
             player.removeStateListener(listener)
+            lifecycleOwner.lifecycle.removeObserver(player)
             player.release()
         }
+    }
+
+    DisposableEffect(audio?.assetPath) {
+        player.stop()
+        onDispose { }
     }
 
     if (audio == null) {
@@ -84,6 +95,11 @@ fun LocalAudioControls(
         }
         TextButton(onClick = { player.replay() }) {
             Text("Répéter")
+        }
+        if (playback == PlaybackState.Playing || playback == PlaybackState.Paused) {
+            TextButton(onClick = { player.stop() }) {
+                Text("Arrêter")
+            }
         }
     }
 }

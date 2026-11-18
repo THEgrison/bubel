@@ -127,7 +127,7 @@ internal object AlphabetLettersSeed {
             pronunciationGuideFr = "Nom russe : « и ». Approximation : proche du i français — simple aide d’écoute.",
             soundInWordsFr = "Dans les mots, И/и est une voyelle fermée ; elle palatalise en règle générale la consonne qui précède.",
             exampleWordRu = "имя",
-            exampleWordFr = "prénom / nom",
+            exampleWordFr = "prénom",
             audioAssetPath = null,
         ),
         AlphabetLetter(

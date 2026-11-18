@@ -42,12 +42,7 @@ object ReviewableCatalog {
                         contentRefId = letter.id,
                         promptFr = "Quel est le nom russe de la lettre ${letter.uppercase} ?",
                         stimulus = "${letter.uppercase} ${letter.lowercase}",
-                        choices = listOf(
-                            letter.nameRu,
-                            "бэ",
-                            "вэ",
-                            "гэ",
-                        ).distinct(),
+                        choices = letterNameChoices(letter.nameRu),
                         acceptedAnswers = listOf(letter.nameRu),
                         explanationFr = "${letter.uppercase} s'appelle « ${letter.nameRu} ».",
                     ),
@@ -171,6 +166,13 @@ object ReviewableCatalog {
     private fun distractorsFr(correct: String, pool: List<String>): List<String> {
         val others = pool.filter { it != correct }.distinct().shuffled()
         return (listOf(correct) + others).distinct().take(4)
+    }
+
+    /** Toujours 4 choix distincts pour les noms de lettres (évite le collapse Б/В/Г). */
+    private fun letterNameChoices(correct: String): List<String> {
+        val pool = listOf("а", "бэ", "вэ", "гэ", "дэ", "э", "и", "ка", "эм", "эн", "эр", "эс", "тэ")
+        val distractors = pool.filter { it != correct }.distinct()
+        return (listOf(correct) + distractors).distinct().take(4)
     }
 
     /** Contenu non étudié → aucun élément (invariant testé). */

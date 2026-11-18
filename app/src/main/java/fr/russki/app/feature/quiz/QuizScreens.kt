@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,11 +44,13 @@ import fr.russki.app.core.ui.components.SecondaryButton
 import fr.russki.app.core.ui.components.SoftPanel
 import fr.russki.app.core.ui.components.SpacerH
 import fr.russki.app.core.ui.components.feedbackStateFrom
+import fr.russki.app.data.content.AssetAudioAvailability
 import fr.russki.app.domain.exercise.AnswerMatcher
 import fr.russki.app.domain.model.LoadState
 import fr.russki.app.domain.quiz.QuizQuestion
 import fr.russki.app.domain.quiz.QuizQuestionType
 import fr.russki.app.domain.quiz.QuizSessionStatus
+import fr.russki.app.feature.audio.LocalAudioControls
 
 @Composable
 fun QuizRoute(
@@ -184,11 +187,11 @@ private fun QuestionPane(
                 )
             }
             SpacerH(8)
-            if (question.audioAssetPath == null) {
-                MetaChip("Pas d'audio natif pour cette question")
-            } else {
-                MetaChip("Audio référencé — lecture si fichier présent")
+            val context = LocalContext.current
+            val resolvedAudio = remember(question.audioAssetPath) {
+                AssetAudioAvailability(context).isAvailable(question.audioAssetPath)
             }
+            LocalAudioControls(audio = resolvedAudio)
         }
 
         when (question.type) {

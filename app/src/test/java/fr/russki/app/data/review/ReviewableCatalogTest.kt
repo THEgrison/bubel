@@ -41,4 +41,15 @@ class ReviewableCatalogTest {
         val b = ReviewableCatalog.itemsForCompleted(setOf(A1Unit1Seed.LESSON_ALPHABET)).map { it.id }
         assertEquals(a, b)
     }
+
+    @Test
+    fun alphabetLetterReviews_alwaysOfferFourDistinctChoices() {
+        val items = ReviewableCatalog.itemsForCompleted(setOf(A1Unit1Seed.LESSON_ALPHABET))
+            .filter { it.id.startsWith("rv-letter-") }
+        assertTrue(items.isNotEmpty())
+        items.forEach { item ->
+            assertEquals("Choix distincts pour ${item.id}", 4, item.choices.distinct().size)
+            assertTrue(item.acceptedAnswers.first() in item.choices)
+        }
+    }
 }

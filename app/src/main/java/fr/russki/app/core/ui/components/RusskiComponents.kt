@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -112,7 +113,7 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(if (compact) 40.dp else 52.dp),
+        modifier = modifier.heightIn(min = if (compact) 40.dp else 52.dp),
         shape = RoundedCornerShape(RusskiRadii.Md.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -130,6 +131,7 @@ fun PrimaryButton(
             text = text,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }
@@ -145,7 +147,7 @@ fun SecondaryButton(
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(if (compact) 40.dp else 52.dp),
+        modifier = modifier.heightIn(min = if (compact) 40.dp else 52.dp),
         shape = RoundedCornerShape(RusskiRadii.Md.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.5.dp,
@@ -161,6 +163,7 @@ fun SecondaryButton(
             text = text,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }

@@ -47,7 +47,7 @@ object A1DialoguesSeed {
         lines = listOf(
             line("meet-l1", 0, "anna", "Здравствуйте!", "Bonjour ! (vouvoiement)", null),
             line("meet-l2", 1, "ivan", "Здравствуйте! Меня зовут Иван.", "Bonjour ! Je m'appelle Ivan.", null),
-            line("meet-l3", 2, "anna", "Очень приятно. Меня зовут Анна.", "Enchanté. Je m'appelle Anna.", null),
+            line("meet-l3", 2, "anna", "Очень приятно. Меня зовут Анна.", "Enchantée. Je m'appelle Anna.", null),
             line("meet-l4", 3, "ivan", "Очень приятно, Анна. Вы из Франции?", "Enchanté, Anna. Vous êtes de France ?", null),
             line("meet-l5", 4, "anna", "Да, я из Франции. А вы?", "Oui, je suis de France. Et vous ?", null),
             line("meet-l6", 5, "ivan", "Я из России.", "Je suis de Russie.", null),

@@ -105,8 +105,11 @@ class LocalAudioPlayer(
 
     fun pause() {
         runCatching {
-            player?.takeIf { it.isPlaying }?.pause()
-            setState(PlaybackState.Paused)
+            val mp = player ?: return
+            if (mp.isPlaying) {
+                mp.pause()
+                setState(PlaybackState.Paused)
+            }
         }
     }
 
